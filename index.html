@@ -16,8 +16,8 @@
 
   <div class="card dash">
     <div><strong>Total Stars:</strong> <span id="totalStars">0</span> ⭐</div>
-    <div class="tiny">Tip: Dictation works here by recording audio and transcribing it through your Worker.</div>
-    <button id="reset" class="ghost">Reset Progress</button>
+    <div class="tiny">Tip: Dictation works everywhere because it records audio and transcribes it via your Worker.</div>
+    <button id="reset" class="ghost" type="button">Reset Progress</button>
   </div>
 </main>
 
@@ -25,7 +25,7 @@
 
 <script>
   const THEMES = [
-    { id:"yo",          icon:"🪞", title:"Yo y mi personalidad" },
+    { id:"yo",          icon:"🙂", title:"Yo y mi personalidad" },
     { id:"barrio",      icon:"🏠", title:"Mi barrio y mi casa" },
     { id:"instituto",   icon:"🎓", title:"Mi instituto" },
     { id:"familia",     icon:"👨‍👩‍👧‍👦", title:"Mi familia" },
@@ -51,6 +51,7 @@
     THEMES.forEach(t=>{
       const btn = document.createElement("button");
       btn.className = "tile";
+      btn.type = "button";
       btn.innerHTML = `
         <div class="tileTop">
           <div class="tileIcon">${t.icon}</div>
