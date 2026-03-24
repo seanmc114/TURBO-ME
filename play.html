@@ -1,40 +1,39 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <title>Turbo Me (up)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<main class="wrap">
-  <div class="topBar">
-    <button id="homeBtn" class="ghost">← Themes</button>
-    <div class="pill" id="pill">Theme · Tense</div>
+  <div class="container">
+
+    <h1>Turbo Me (up)</h1>
+
+    <div id="intro">
+      Talk about You. Practice. Enjoy. You have a lot to say.
+    </div>
+
+    <div id="turnInfo">Turn 1/3</div>
+
+    <!-- QUESTION -->
+    <div id="questionBox"></div>
+
+    <!-- INPUT -->
+    <textarea id="answerBox" placeholder="Speak or type your answer in Spanish…"></textarea>
+
+    <div class="buttons">
+      <button id="dictateBtn">🎙 Dictate</button>
+      <button id="submitBtn">Submit</button>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div id="feedback"></div>
+
   </div>
 
-  <h1>Turbo Me (up)</h1>
-
-  <div class="taskBox">
-    <span id="question"></span>
-    <button id="readQ" class="smallBtn" type="button">🔊</button>
-  </div>
-
-  <textarea id="answer" placeholder="Speak (🎙) or type your answer in Spanish…"></textarea>
-
-  <div class="controls">
-    <button id="recordBtn" class="smallBtn" type="button">🎙 Dictate</button>
-    <button id="submitBtn" type="button">Submit</button>
-  </div>
-
-  <section id="out" class="card hidden"></section>
-</main>
-
-<footer>© 2026 Synge St Games — imagination and perseverance</footer>
-
-<script src="ai.js"></script>
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
