@@ -36,6 +36,7 @@ const homeBtn = document.getElementById("homeBtn");
 const readQBtn = document.getElementById("readQ");
 const recordBtn = document.getElementById("recordBtn");
 const submitBtn = document.getElementById("submitBtn");
+const turnNoEl = document.getElementById("turnNo");
 
 if (qEl && aEl) initPlay();
 
@@ -44,6 +45,7 @@ async function initPlay() {
   wireButtonsSafely();
   blockCopyPaste(aEl);
 
+  setTurn(1);
   setQuestion("Loading question…");
   await loadBank();
 
@@ -55,6 +57,10 @@ function hidePill() {
   if (!pill) return;
   pill.textContent = "";
   pill.style.display = "none";
+}
+
+function setTurn(n) {
+  if (turnNoEl) turnNoEl.textContent = String(n);
 }
 
 function wireButtonsSafely() {
@@ -94,10 +100,9 @@ async function loadBank() {
 }
 
 function normaliseTheme(theme) {
-  if (!theme) return "yo";
-  const t = String(theme).trim().toLowerCase();
+  const t = String(theme || "yo").trim().toLowerCase();
   if (state.bank && state.bank[t]) return t;
-  return Object.keys(state.bank || {}).includes(t) ? t : "yo";
+  return "yo";
 }
 
 function normaliseTense(tense) {
@@ -109,7 +114,6 @@ function getQuestionList(theme, tense) {
   const bank = state.bank || {};
   const safeTheme = normaliseTheme(theme);
   const safeTense = normaliseTense(tense);
-
   const themeBlock = bank[safeTheme];
 
   if (!themeBlock) return [];
@@ -129,9 +133,7 @@ function getQuestionList(theme, tense) {
     .concat(Array.isArray(themeBlock.future) ? themeBlock.future : [])
     .filter(Boolean);
 
-  if (merged.length) return merged;
-
-  return [];
+  return merged;
 }
 
 function getAnyQuestionFromBank() {
@@ -199,6 +201,7 @@ async function onRecord() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
+
     mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size) audioChunks.push(e.data);
     };
@@ -211,6 +214,7 @@ async function onRecord() {
       const blob = new Blob(audioChunks, {
         type: (audioChunks[0] && audioChunks[0].type) ? audioChunks[0].type : "audio/webm"
       });
+
       state.lastAudioUrl = URL.createObjectURL(blob);
 
       out.innerHTML = `
@@ -254,12 +258,11 @@ function safeStopRecording() {
   try {
     if (recordTimeout) clearTimeout(recordTimeout);
   } catch {}
+
   recordTimeout = null;
 
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
-    try {
-      mediaRecorder.stop();
-    } catch {}
+    try { mediaRecorder.stop(); } catch {}
   }
 
   if (recordBtn) {
@@ -286,7 +289,9 @@ function updateBest(theme, tense, stars) {
   if (stars > cur) localStorage.setItem(key, String(stars));
 }
 
-async function onSubmit() {
+async function onSubmit(e) {
+  if (e) e.preventDefault();
+
   const answer = aEl.value.trim();
   if (!answer) return;
 
@@ -294,7 +299,17 @@ async function onSubmit() {
   if (recordBtn) recordBtn.disabled = true;
 
   out.classList.remove("hidden");
-  out.innerHTML = "Thinking…";
+  out.innerHTML = `<div><strong>Thinking…</strong></div><div class="tiny">Checking your answer.</div>`;
+
+  if (!window.classifyAnswer || typeof window.classifyAnswer !== "function") {
+    out.innerHTML = `
+      <div><strong>Error</strong></div>
+      <div class="tiny">The Worker link is not available on this page.</div>
+    `;
+    if (submitBtn) submitBtn.disabled = false;
+    if (recordBtn) recordBtn.disabled = false;
+    return;
+  }
 
   const payload = {
     mode: "lc_oral",
@@ -363,6 +378,8 @@ async function onSubmit() {
     </div>
   `;
 
+  setTurn(Math.min(state.turn + 1, MAX_TURNS));
+
   const readFeedbackBtn = document.getElementById("readFeedbackBtn");
   if (readFeedbackBtn) {
     readFeedbackBtn.addEventListener("click", () => speakES(qEl.textContent));
@@ -370,16 +387,14 @@ async function onSubmit() {
 
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) {
-    nextBtn.addEventListener("click", async () => {
+    nextBtn.addEventListener("click", () => {
       if (result.session_end || state.turn >= MAX_TURNS) {
         renderSummary(result);
         return;
       }
 
       const nextTense = (result.next_tense || state.tense).toString();
-      state.tense = (nextTense === "past" || nextTense === "future" || nextTense === "present")
-        ? nextTense
-        : state.tense;
+      state.tense = ["past", "future", "present"].includes(nextTense) ? nextTense : state.tense;
 
       hidePill();
 
@@ -459,6 +474,7 @@ function renderSummary(result) {
         bank: state.bank
       };
       hidePill();
+      setTurn(1);
       aEl.value = "";
       out.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
