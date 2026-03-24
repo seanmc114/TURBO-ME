@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Turbo Me (up) · Choose Tense</title>
+  <title>Choose Tense</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -10,21 +10,23 @@
 
 <main class="wrap">
   <div class="topBar">
-    <button id="backBtn" class="ghost">← Topics</button>
-    <div class="pill" id="themePill">Topic</div>
+    <button id="backBtn" class="ghost">← Themes</button>
+    <div class="pill" id="themePill">Theme</div>
   </div>
 
   <h1>Choose Tense</h1>
-  <p class="sub">Pick the tense you want to practise. The examiner should stay in that tense unless your answer naturally moves elsewhere.</p>
+  <p class="sub">Pick the tense you want to practise. The examiner will keep the conversation in that tense unless your answer logically forces a shift.</p>
 
   <div class="grid3">
-    <button class="tileSmall" data-tense="present">Present<br><span class="tiny">soy / vivo / me gusta</span></button>
+    <button class="tileSmall" data-tense="present">Present<br><span class="tiny">hablo / vivo / me gusta</span></button>
     <button class="tileSmall" data-tense="past">Past<br><span class="tiny">fui / hice / era</span></button>
     <button class="tileSmall" data-tense="future">Future<br><span class="tiny">voy a / me gustaría</span></button>
   </div>
 
   <div class="card">
-    <div class="tiny">This is for short oral turns. Aim for a clear answer, one reason, and one extra detail when appropriate.</div>
+    <div class="tiny">
+      Dictation note: on iPhone Safari, browser dictation APIs don’t exist. This game records audio and transcribes via your Worker, so it still works.
+    </div>
   </div>
 </main>
 
@@ -32,20 +34,20 @@
 
 <script>
   const THEME_LABEL = {
-    yo:"Yo y mi personalidad",
-    familia:"Mi familia",
-    casa:"Mi casa y mi barrio",
+    barrio:"Mi barrio y mi casa",
     instituto:"Mi instituto",
+    familia:"Mi familia",
     amigos:"Mis amigos",
     tiempo:"Tiempo libre",
     vacaciones:"Vacaciones y viajes",
     salud:"Deporte y salud",
     tecnologia:"Tecnología y redes",
+    comida:"Comida y vida diaria",
     futuro:"Planes y futuro"
   };
 
-  const theme = localStorage.getItem("oral_theme") || "yo";
-  document.getElementById("themePill").textContent = THEME_LABEL[theme] || "Topic";
+  const theme = localStorage.getItem("oral_theme") || "barrio";
+  document.getElementById("themePill").textContent = THEME_LABEL[theme] || "Theme";
 
   document.getElementById("backBtn").addEventListener("click", ()=>window.location.href="index.html");
 
