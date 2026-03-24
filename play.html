@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Turbo Me (up) · Oral Practice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<main class="wrap">
+  <div class="topBar">
+    <button id="homeBtn" class="ghost">← Topics</button>
+    <div class="pill" id="pill">Topic · Tense</div>
+  </div>
+
+  <h1>Turbo Me (up)</h1>
+
+  <div class="taskBox">
+    <strong>Examinador/a:</strong>
+    <span id="question"></span>
+    <button id="readQ" class="smallBtn" type="button">🔊</button>
+  </div>
+
+  <div class="turnMeta">
+    <span id="turnCounter">Turn 1/5</span>
+    <span id="scoreHint">Target: clear answer + reason + detail</span>
+  </div>
+
+  <textarea id="answer" placeholder="Speak (🎙) or type your answer in Spanish…"></textarea>
+
+  <div class="controls">
+    <button id="recordBtn" class="smallBtn" type="button">🎙 Dictate</button>
+    <button id="submitBtn" type="button">Submit</button>
+  </div>
+
+  <section id="out" class="card hidden"></section>
+</main>
+
+<footer>© 2026 Synge St Games — imagination and perseverance</footer>
+
+<script src="ai.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
