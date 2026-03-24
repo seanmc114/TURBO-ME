@@ -2,20 +2,20 @@ const MAX_TURNS = 3;
 const TOTAL_STARS_KEY = "oral_totalStars";
 
 const THEME_LABEL = {
-  yo:"Yo y mi personalidad",
-  barrio:"Mi barrio y mi casa",
-  instituto:"Mi instituto",
-  familia:"Mi familia",
-  amigos:"Mis amigos",
-  tiempo:"Tiempo libre",
-  vacaciones:"Vacaciones y viajes",
-  salud:"Deporte y salud",
-  tecnologia:"Tecnología y redes",
-  comida:"Comida y vida diaria",
-  futuro:"Planes y futuro"
+  yo: "Yo y mi personalidad",
+  barrio: "Mi barrio y mi casa",
+  instituto: "Mi instituto",
+  familia: "Mi familia",
+  amigos: "Mis amigos",
+  tiempo: "Tiempo libre",
+  vacaciones: "Vacaciones y viajes",
+  salud: "Deporte y salud",
+  tecnologia: "Tecnología y redes",
+  comida: "Comida y vida diaria",
+  futuro: "Planes y futuro"
 };
 
-const TENSE_LABEL = { present:"Present", past:"Past", future:"Future" };
+const TENSE_LABEL = { present: "Present", past: "Past", future: "Future" };
 
 let state = {
   theme: localStorage.getItem("oral_theme") || "yo",
@@ -39,47 +39,140 @@ const submitBtn = document.getElementById("submitBtn");
 
 if (qEl && aEl) initPlay();
 
-async function initPlay(){
-  pill.textContent = `${THEME_LABEL[state.theme] || "Tema"} · ${TENSE_LABEL[state.tense] || "Tense"}`;
-  homeBtn.addEventListener("click", ()=> window.location.href="index.html");
-  readQBtn.addEventListener("click", ()=> speakES(qEl.textContent));
-  recordBtn.addEventListener("click", onRecord);
-  submitBtn.addEventListener("click", onSubmit);
-  qEl.textContent = "Loading question…";
+async function initPlay() {
+  hidePill();
+  wireButtonsSafely();
+  blockCopyPaste(aEl);
+
+  setQuestion("Loading question…");
   await loadBank();
-  setQuestion(getRandomQuestion(state.theme, state.tense));
+
+  const firstQuestion = getRandomQuestion(state.theme, state.tense);
+  setQuestion(firstQuestion);
 }
 
-function setQuestion(text){
+function hidePill() {
+  if (!pill) return;
+  pill.textContent = "";
+  pill.style.display = "none";
+}
+
+function wireButtonsSafely() {
+  if (homeBtn) {
+    homeBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  }
+
+  if (readQBtn) {
+    readQBtn.addEventListener("click", () => {
+      speakES(qEl.textContent);
+    });
+  }
+
+  if (recordBtn) {
+    recordBtn.addEventListener("click", onRecord);
+  }
+
+  if (submitBtn) {
+    submitBtn.addEventListener("click", onSubmit);
+  }
+}
+
+function setQuestion(text) {
   qEl.textContent = text || "¿Puedes hablar un poco de este tema?";
 }
 
-async function loadBank(){
+async function loadBank() {
   if (state.bank) return state.bank;
   try {
-    state.bank = await fetch("questions.json", { cache:"no-store" }).then(r => r.json());
+    state.bank = await fetch("questions.json", { cache: "no-store" }).then(r => r.json());
   } catch {
     state.bank = {};
   }
   return state.bank;
 }
 
-function getRandomQuestion(theme, tense){
-  const list = state.bank?.[theme]?.[tense];
-  if (Array.isArray(list) && list.length) {
-    return list[Math.floor(Math.random() * list.length)];
+function normaliseTheme(theme) {
+  if (!theme) return "yo";
+  const t = String(theme).trim().toLowerCase();
+  if (state.bank && state.bank[t]) return t;
+  return Object.keys(state.bank || {}).includes(t) ? t : "yo";
+}
+
+function normaliseTense(tense) {
+  const t = String(tense || "present").trim().toLowerCase();
+  return ["present", "past", "future"].includes(t) ? t : "present";
+}
+
+function getQuestionList(theme, tense) {
+  const bank = state.bank || {};
+  const safeTheme = normaliseTheme(theme);
+  const safeTense = normaliseTense(tense);
+
+  const themeBlock = bank[safeTheme];
+
+  if (!themeBlock) return [];
+
+  if (Array.isArray(themeBlock)) {
+    return themeBlock.filter(Boolean);
+  }
+
+  const exact = themeBlock[safeTense];
+  if (Array.isArray(exact) && exact.length) {
+    return exact.filter(Boolean);
+  }
+
+  const merged = []
+    .concat(Array.isArray(themeBlock.present) ? themeBlock.present : [])
+    .concat(Array.isArray(themeBlock.past) ? themeBlock.past : [])
+    .concat(Array.isArray(themeBlock.future) ? themeBlock.future : [])
+    .filter(Boolean);
+
+  if (merged.length) return merged;
+
+  return [];
+}
+
+function getAnyQuestionFromBank() {
+  const bank = state.bank || {};
+  for (const themeKey of Object.keys(bank)) {
+    const block = bank[themeKey];
+
+    if (Array.isArray(block) && block.length) {
+      return block[Math.floor(Math.random() * block.length)];
+    }
+
+    if (block && typeof block === "object") {
+      for (const tenseKey of ["present", "past", "future"]) {
+        const list = block[tenseKey];
+        if (Array.isArray(list) && list.length) {
+          return list[Math.floor(Math.random() * list.length)];
+        }
+      }
+    }
   }
   return "¿Puedes hablar un poco de este tema?";
 }
 
-function speakES(text){
-  if(!text) return;
+function getRandomQuestion(theme, tense) {
+  const list = getQuestionList(theme, tense);
+  if (list.length) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  return getAnyQuestionFromBank();
+}
+
+function speakES(text) {
+  if (!text) return;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "es-ES";
   u.rate = 0.95;
   const voices = speechSynthesis.getVoices ? speechSynthesis.getVoices() : [];
-  const v = voices.find(x => (x.lang||"").toLowerCase()==="es-es") || voices.find(x => (x.lang||"").toLowerCase().startsWith("es"));
-  if(v) u.voice = v;
+  const v =
+    voices.find(x => (x.lang || "").toLowerCase() === "es-es") ||
+    voices.find(x => (x.lang || "").toLowerCase().startsWith("es"));
+  if (v) u.voice = v;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
@@ -88,8 +181,10 @@ let mediaRecorder = null;
 let audioChunks = [];
 let recordTimeout = null;
 
-async function onRecord(){
-  if(state.lastAudioUrl){
+async function onRecord() {
+  if (!recordBtn || !out) return;
+
+  if (state.lastAudioUrl) {
     URL.revokeObjectURL(state.lastAudioUrl);
     state.lastAudioUrl = null;
   }
@@ -101,14 +196,21 @@ async function onRecord(){
   `;
 
   audioChunks = [];
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (e)=>{ if(e.data && e.data.size) audioChunks.push(e.data); };
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size) audioChunks.push(e.data);
+    };
 
-    mediaRecorder.onstop = async ()=>{
-      try{ stream.getTracks().forEach(t=>t.stop()); } catch {}
-      const blob = new Blob(audioChunks, { type: (audioChunks[0] && audioChunks[0].type) ? audioChunks[0].type : "audio/webm" });
+    mediaRecorder.onstop = async () => {
+      try {
+        stream.getTracks().forEach(t => t.stop());
+      } catch {}
+
+      const blob = new Blob(audioChunks, {
+        type: (audioChunks[0] && audioChunks[0].type) ? audioChunks[0].type : "audio/webm"
+      });
       state.lastAudioUrl = URL.createObjectURL(blob);
 
       out.innerHTML = `
@@ -116,17 +218,17 @@ async function onRecord(){
         <div class="tiny">Transcribing…</div>
       `;
 
-      try{
+      try {
         const data = await window.transcribeAudio(blob);
         const text = (data && data.text) ? String(data.text).trim() : "";
-        if(!text){
+        if (!text) {
           out.innerHTML = `
             <div><strong>Dictation</strong></div>
             <div class="tiny">No speech detected. Try again, closer to the mic.</div>
           `;
           return;
         }
-        aEl.value = (aEl.value.trim() ? (aEl.value.trim()+" ") : "") + text;
+        aEl.value = (aEl.value.trim() ? (aEl.value.trim() + " ") : "") + text;
         out.classList.add("hidden");
       } catch {
         out.innerHTML = `
@@ -137,9 +239,9 @@ async function onRecord(){
     };
 
     mediaRecorder.start();
-    recordTimeout = setTimeout(()=> safeStopRecording(), 6000);
+    recordTimeout = setTimeout(() => safeStopRecording(), 6000);
     recordBtn.textContent = "⏹ Stop";
-    recordBtn.onclick = ()=> safeStopRecording();
+    recordBtn.onclick = () => safeStopRecording();
   } catch {
     out.innerHTML = `
       <div><strong>Dictation</strong></div>
@@ -148,40 +250,49 @@ async function onRecord(){
   }
 }
 
-function safeStopRecording(){
-  try{ if(recordTimeout) clearTimeout(recordTimeout); } catch {}
+function safeStopRecording() {
+  try {
+    if (recordTimeout) clearTimeout(recordTimeout);
+  } catch {}
   recordTimeout = null;
-  if(mediaRecorder && mediaRecorder.state !== "inactive"){
-    try{ mediaRecorder.stop(); } catch {}
+
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    try {
+      mediaRecorder.stop();
+    } catch {}
   }
-  recordBtn.textContent = "🎙 Dictate";
-  recordBtn.onclick = onRecord;
+
+  if (recordBtn) {
+    recordBtn.textContent = "🎙 Dictate";
+    recordBtn.onclick = onRecord;
+  }
 }
 
-function starsFor(score100){
-  if(score100 >= 85) return 3;
-  if(score100 >= 70) return 2;
-  if(score100 >= 55) return 1;
+function starsFor(score100) {
+  if (score100 >= 85) return 3;
+  if (score100 >= 70) return 2;
+  if (score100 >= 55) return 1;
   return 0;
 }
 
-function addTotalStars(n){
+function addTotalStars(n) {
   const cur = Number(localStorage.getItem(TOTAL_STARS_KEY) || 0);
   localStorage.setItem(TOTAL_STARS_KEY, String(cur + n));
 }
 
-function updateBest(theme, tense, stars){
+function updateBest(theme, tense, stars) {
   const key = `oral_best_${theme}_${tense}`;
   const cur = Number(localStorage.getItem(key) || 0);
-  if(stars > cur) localStorage.setItem(key, String(stars));
+  if (stars > cur) localStorage.setItem(key, String(stars));
 }
 
-async function onSubmit(){
+async function onSubmit() {
   const answer = aEl.value.trim();
-  if(!answer) return;
+  if (!answer) return;
 
-  submitBtn.disabled = true;
-  recordBtn.disabled = true;
+  if (submitBtn) submitBtn.disabled = true;
+  if (recordBtn) recordBtn.disabled = true;
+
   out.classList.remove("hidden");
   out.innerHTML = "Thinking…";
 
@@ -197,10 +308,17 @@ async function onSubmit(){
   };
 
   let result;
-  try{
+  try {
     result = await window.classifyAnswer(payload);
   } catch {
-    result = { score: 0, focus: "communication", feedback: "AI error — try again.", next_question: null, next_tense: state.tense, session_end: false };
+    result = {
+      score: 0,
+      focus: "communication",
+      feedback: "AI error — try again.",
+      next_question: null,
+      next_tense: state.tense,
+      session_end: false
+    };
   }
 
   const score = Number(result.score) || 0;
@@ -237,53 +355,68 @@ async function onSubmit(){
     ${progressLine}
     <div style="margin-bottom:10px;"><strong>Main mark-losing issue:</strong> ${escapeHtml(focus)}</div>
     <div style="margin-bottom:10px;"><strong>Coach note:</strong> ${escapeHtml(coachLine)}</div>
-    <div style="margin-bottom:12px;">${escapeHtml(result.feedback || "—").replace(/\n/g,"<br>")}</div>
-    ${result.model_answer ? `<div style="margin-top:10px;"><strong>Model (Spanish):</strong><br>${escapeHtml(result.model_answer).replace(/\n/g,"<br>")}</div>` : ""}
+    <div style="margin-bottom:12px;">${escapeHtml(result.feedback || "—").replace(/\n/g, "<br>")}</div>
+    ${result.model_answer ? `<div style="margin-top:10px;"><strong>Model (Spanish):</strong><br>${escapeHtml(result.model_answer).replace(/\n/g, "<br>")}</div>` : ""}
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
       <button id="nextBtn" type="button">Next</button>
       <button id="readFeedbackBtn" class="smallBtn" type="button">🔊 Read Question</button>
     </div>
   `;
 
-  document.getElementById("readFeedbackBtn").addEventListener("click", ()=> speakES(qEl.textContent));
+  const readFeedbackBtn = document.getElementById("readFeedbackBtn");
+  if (readFeedbackBtn) {
+    readFeedbackBtn.addEventListener("click", () => speakES(qEl.textContent));
+  }
 
-  document.getElementById("nextBtn").addEventListener("click", async ()=>{
-    if(result.session_end || state.turn >= MAX_TURNS){
-      renderSummary(result);
-      return;
-    }
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", async () => {
+      if (result.session_end || state.turn >= MAX_TURNS) {
+        renderSummary(result);
+        return;
+      }
 
-    const nextTense = (result.next_tense || state.tense).toString();
-    state.tense = (nextTense === "past" || nextTense === "future" || nextTense === "present") ? nextTense : state.tense;
-    pill.textContent = `${THEME_LABEL[state.theme] || "Tema"} · ${TENSE_LABEL[state.tense] || "Tense"}`;
+      const nextTense = (result.next_tense || state.tense).toString();
+      state.tense = (nextTense === "past" || nextTense === "future" || nextTense === "present")
+        ? nextTense
+        : state.tense;
 
-    if(result.next_question && String(result.next_question).trim()) setQuestion(String(result.next_question).trim());
-    else setQuestion(getRandomQuestion(state.theme, state.tense));
+      hidePill();
 
-    aEl.value = "";
-    out.classList.add("hidden");
-    submitBtn.disabled = false;
-    recordBtn.disabled = false;
-  });
+      if (result.next_question && String(result.next_question).trim()) {
+        setQuestion(String(result.next_question).trim());
+      } else {
+        setQuestion(getRandomQuestion(state.theme, state.tense));
+      }
+
+      aEl.value = "";
+      out.classList.add("hidden");
+      if (submitBtn) submitBtn.disabled = false;
+      if (recordBtn) recordBtn.disabled = false;
+    });
+  }
 }
 
-function renderSummary(result){
-  const avg = Math.round(state.scores.reduce((a,b)=>a+b,0) / Math.max(1,state.scores.length));
+function renderSummary(result) {
+  const avg = Math.round(state.scores.reduce((a, b) => a + b, 0) / Math.max(1, state.scores.length));
   const sessionStars = starsFor(avg);
   addTotalStars(sessionStars);
   updateBest(state.theme, state.tense, sessionStars);
 
   const counts = {};
-  state.focuses.forEach(f=>{
+  state.focuses.forEach(f => {
     const k = (f || "").trim();
-    if(!k) return;
+    if (!k) return;
     counts[k] = (counts[k] || 0) + 1;
   });
 
   let main = "—";
   let best = 0;
-  Object.keys(counts).forEach(k=>{
-    if(counts[k] > best){ best = counts[k]; main = k; }
+  Object.keys(counts).forEach(k => {
+    if (counts[k] > best) {
+      best = counts[k];
+      main = k;
+    }
   });
 
   const drills = Array.isArray(result?.drills) ? result.drills : [];
@@ -297,7 +430,11 @@ function renderSummary(result){
     <div style="margin-top:12px;"><strong>Your main mark-losing issue today:</strong> ${escapeHtml(main)}</div>
     <div style="margin-top:10px;"><strong>What to do next:</strong>
       <ul style="margin:8px 0 0 18px;">
-        ${(drills.length ? drills : ["Add 1 reason (porque) or 1 small detail to each answer.", "Use one connector: además / también / sin embargo.", "Repeat the same theme and try to beat your last round."]).map(d=>`<li>${escapeHtml(String(d))}</li>`).join("")}
+        ${(drills.length ? drills : [
+          "Add 1 reason (porque) or 1 small detail to each answer.",
+          "Use one connector: además / también / sin embargo.",
+          "Repeat the same theme and try to beat your last round."
+        ]).map(d => `<li>${escapeHtml(String(d))}</li>`).join("")}
       </ul>
     </div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -306,28 +443,61 @@ function renderSummary(result){
     </div>
   `;
 
-  document.getElementById("againBtn").addEventListener("click", ()=>{
-    const keepTheme = state.theme;
-    const keepTense = state.tense;
-    state = { theme: keepTheme, tense: keepTense, turn: 0, history: [], scores: [], focuses: [], lastAudioUrl: null, bank: state.bank };
-    pill.textContent = `${THEME_LABEL[state.theme] || "Tema"} · ${TENSE_LABEL[state.tense] || "Tense"}`;
-    aEl.value = "";
-    out.classList.add("hidden");
-    submitBtn.disabled = false;
-    recordBtn.disabled = false;
-    setQuestion(getRandomQuestion(state.theme, state.tense));
-  });
+  const againBtn = document.getElementById("againBtn");
+  if (againBtn) {
+    againBtn.addEventListener("click", () => {
+      const keepTheme = state.theme;
+      const keepTense = state.tense;
+      state = {
+        theme: keepTheme,
+        tense: keepTense,
+        turn: 0,
+        history: [],
+        scores: [],
+        focuses: [],
+        lastAudioUrl: null,
+        bank: state.bank
+      };
+      hidePill();
+      aEl.value = "";
+      out.classList.add("hidden");
+      if (submitBtn) submitBtn.disabled = false;
+      if (recordBtn) recordBtn.disabled = false;
+      setQuestion(getRandomQuestion(state.theme, state.tense));
+    });
+  }
 
-  document.getElementById("homeBtn2").addEventListener("click", ()=> window.location.href="index.html");
-  submitBtn.disabled = true;
-  recordBtn.disabled = false;
+  const homeBtn2 = document.getElementById("homeBtn2");
+  if (homeBtn2) {
+    homeBtn2.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  }
+
+  if (submitBtn) submitBtn.disabled = true;
+  if (recordBtn) recordBtn.disabled = false;
 }
 
-function escapeHtml(s){
+function blockCopyPaste(el) {
+  if (!el) return;
+
+  ["paste", "copy", "cut", "drop"].forEach(evt => {
+    el.addEventListener(evt, e => e.preventDefault());
+  });
+
+  el.addEventListener("keydown", e => {
+    const key = (e.key || "").toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ["v", "c", "x"].includes(key)) {
+      e.preventDefault();
+    }
+  });
+}
+
+function escapeHtml(s) {
   return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
