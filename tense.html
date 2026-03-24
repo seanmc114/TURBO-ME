@@ -15,7 +15,7 @@
   </div>
 
   <h1>Choose Tense</h1>
-  <p class="sub">Pick the tense you want to practise. The examiner will keep the conversation in that tense unless your answer logically forces a shift.</p>
+  <p class="sub">Pick the tense you want to practise.</p>
 
   <div class="grid3">
     <button class="tileSmall" data-tense="present">Present<br><span class="tiny">hablo / vivo / me gusta</span></button>
@@ -34,6 +34,7 @@
 
 <script>
   const THEME_LABEL = {
+    yo:"Yo y mi personalidad",
     barrio:"Mi barrio y mi casa",
     instituto:"Mi instituto",
     familia:"Mi familia",
@@ -46,7 +47,7 @@
     futuro:"Planes y futuro"
   };
 
-  const theme = localStorage.getItem("oral_theme") || "barrio";
+  const theme = localStorage.getItem("oral_theme") || "yo";
   document.getElementById("themePill").textContent = THEME_LABEL[theme] || "Theme";
 
   document.getElementById("backBtn").addEventListener("click", ()=>window.location.href="index.html");

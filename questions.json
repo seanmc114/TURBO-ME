@@ -1,4 +1,27 @@
 {
+  "yo": {
+    "present": [
+      "Preséntate.",
+      "¿Cómo eres como persona?",
+      "¿Cuáles son tus mejores cualidades?",
+      "¿Qué te gusta hacer y por qué?",
+      "¿Qué te hace diferente?"
+    ],
+    "past": [
+      "¿Cómo eras cuando eras más pequeño/a?",
+      "¿Qué te gustaba hacer cuando eras niño/a?",
+      "¿Cambiaste mucho en los últimos años?",
+      "¿Qué aprendiste sobre ti el año pasado?",
+      "¿Qué hiciste recientemente que te hizo sentir orgulloso/a?"
+    ],
+    "future": [
+      "¿Cómo te gustaría ser en el futuro?",
+      "¿Qué quieres mejorar de ti mismo/a?",
+      "¿Qué vas a hacer este año para progresar?",
+      "¿Cómo te gustaría que fuera tu vida en el futuro?",
+      "¿Qué te gustaría conseguir pronto?"
+    ]
+  },
   "barrio": {
     "present": [
       "¿Cómo es tu barrio?",
