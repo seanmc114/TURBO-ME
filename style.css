@@ -3,13 +3,14 @@
   --blue:#2b6cff;
   --teal:#00c2b3;
   --gold:#ffd43b;
-  --panel:rgba(255,255,255,0.92);
+  --panel:rgba(255,255,255,0.94);
   --ink:#0f172a;
 }
 
 body{
   margin:0;
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  min-height:100vh;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   background:
   radial-gradient(1200px 600px at 20% 10%, rgba(43,108,255,.25), transparent 60%),
   radial-gradient(900px 500px at 85% 20%, rgba(0,194,179,.20), transparent 55%),
@@ -17,8 +18,6 @@ body{
   color:var(--ink);
   position:relative;
 }
-
-/* crest watermark */
 
 body::before{
   content:"";
@@ -31,18 +30,20 @@ body::before{
   z-index:0;
 }
 
-/* main panel */
-
 .wrap{
   position:relative;
   z-index:1;
   width:min(820px,92vw);
-  margin:36px auto;
+  margin:36px auto 24px;
   padding:26px;
   background:var(--panel);
   border-radius:18px;
   box-shadow:0 12px 35px rgba(0,0,0,0.12);
   backdrop-filter:blur(2px);
+}
+
+.playWrap{
+  margin-top:38px;
 }
 
 h1{
@@ -54,6 +55,14 @@ h1{
   text-align:center;
   margin-bottom:18px;
   opacity:.9;
+  font-size:1.02rem;
+}
+
+.turnLine{
+  text-align:center;
+  font-weight:800;
+  margin:6px 0 14px;
+  opacity:.85;
 }
 
 footer{
@@ -62,8 +71,6 @@ footer{
   font-size:.85rem;
   opacity:.75;
 }
-
-/* top bar */
 
 .topBar{
   display:flex;
@@ -81,21 +88,27 @@ footer{
   border:1px solid rgba(43,108,255,.3);
 }
 
-/* question box */
-
 .taskBox{
   display:flex;
   align-items:center;
   gap:10px;
-  margin:14px 0;
+  margin:14px 0 10px;
+}
+
+.taskBoxSolo{
+  justify-content:center;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:16px;
+  padding:18px 16px;
 }
 
 #question{
   flex:1;
-  font-weight:700;
+  font-weight:800;
+  font-size:1.1rem;
+  line-height:1.4;
 }
-
-/* textarea */
 
 textarea{
   width:100%;
@@ -106,9 +119,8 @@ textarea{
   border:1px solid #cbd5e1;
   margin-bottom:14px;
   resize:vertical;
+  box-sizing:border-box;
 }
-
-/* controls */
 
 .controls{
   display:flex;
@@ -116,8 +128,6 @@ textarea{
   margin-bottom:14px;
   flex-wrap:wrap;
 }
-
-/* buttons */
 
 button{
   padding:12px 16px;
@@ -140,7 +150,11 @@ button:active{
   transform:translateY(1px);
 }
 
-/* small buttons */
+button:disabled{
+  opacity:.65;
+  cursor:not-allowed;
+  transform:none;
+}
 
 .smallBtn{
   background:linear-gradient(135deg,#14532d,var(--teal));
@@ -156,8 +170,6 @@ button:active{
   background:#f2f6ff;
 }
 
-/* feedback card */
-
 .card{
   padding:18px;
   border-radius:14px;
@@ -168,8 +180,6 @@ button:active{
 .hidden{
   display:none;
 }
-
-/* grid layouts */
 
 .grid{
   display:grid;
@@ -194,8 +204,6 @@ button:active{
     grid-template-columns:repeat(3,1fr);
   }
 }
-
-/* theme tiles */
 
 .tile{
   text-align:left;
@@ -239,8 +247,6 @@ button:active{
   font-size:.9rem;
 }
 
-/* tense tiles */
-
 .tileSmall{
   text-align:center;
   padding:18px;
@@ -255,35 +261,44 @@ button:active{
   background:linear-gradient(135deg,#0f3b7a,var(--blue));
 }
 
-/* stars animation */
-
-@keyframes starPop{
-  0%{transform:scale(.8);opacity:.6}
-  50%{transform:scale(1.3);opacity:1}
-  100%{transform:scale(1)}
-}
-
-.star{
-  display:inline-block;
-  color:var(--gold);
-  animation:starPop .4s ease;
-}
-
-/* level up glow */
-
-@keyframes glow{
-  0%{box-shadow:0 0 0 rgba(255,212,59,0)}
-  50%{box-shadow:0 0 25px rgba(255,212,59,.7)}
-  100%{box-shadow:0 0 0 rgba(255,212,59,0)}
-}
-
-.levelUp{
-  animation:glow 1s ease;
-}
-
-/* small text */
-
 .tiny{
   font-size:.9rem;
-  opacity:.85;
+  opacity:.82;
+}
+
+@media (max-width:700px){
+  .wrap{
+    width:min(94vw,820px);
+    margin:12px auto 16px;
+    padding:16px 14px 18px;
+    border-radius:16px;
+  }
+
+  .playWrap{
+    margin-top:12px;
+  }
+
+  .topBar{
+    margin-bottom:8px;
+  }
+
+  #question{
+    font-size:1.02rem;
+  }
+
+  textarea{
+    min-height:120px;
+  }
+
+  .controls{
+    flex-direction:column;
+  }
+
+  .controls button{
+    width:100%;
+  }
+
+  .taskBoxSolo{
+    padding:14px 12px;
+  }
 }
