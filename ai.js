@@ -1,31 +1,32 @@
-// ai.js — SAFE AI BRIDGE (Cloudflare Worker)
-// Keep the same base URL you already use.
-const WORKER_BASE = "https://royal-butterfly-00d8.seansynge.workers.dev";
+const WORKER_URL = "YOUR_WORKER_URL_HERE";
 
-// Evaluate (JSON -> JSON)
-async function classifyAnswer(payload) {
-  const res = await fetch(WORKER_BASE + "/", {
+window.classifyAnswer = async function(payload){
+  const res = await fetch(WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error("AI request failed");
+
+  if (!res.ok) {
+    throw new Error("Worker request failed");
+  }
+
   return await res.json();
-}
+};
 
-// Transcribe (audio -> {text})
-async function transcribeAudio(blob) {
+window.transcribeAudio = async function(blob, language = "es"){
   const fd = new FormData();
-  // Use a filename and type; many APIs rely on this.
   fd.append("audio", blob, "speech.webm");
+  fd.append("language", language);
 
-  const res = await fetch(WORKER_BASE + "/transcribe", {
+  const res = await fetch(`${WORKER_URL}/transcribe`, {
     method: "POST",
     body: fd
   });
-  if (!res.ok) throw new Error("Transcription failed");
-  return await res.json();
-}
 
-window.classifyAnswer = classifyAnswer;
-window.transcribeAudio = transcribeAudio;
+  if (!res.ok) {
+    throw new Error("Transcription failed");
+  }
+
+  return await res.json();
+};
