@@ -1,4 +1,4 @@
-const WORKER_URL = "https://royal-butterfly-00d8.seansynge.workers.dev/";
+const WORKER_URL = "https://royal-butterfly-00d8.seansynge.workers.dev";
 
 window.classifyAnswer = async function(payload){
   const res = await fetch(WORKER_URL, {
