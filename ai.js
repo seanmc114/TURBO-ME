@@ -1,6 +1,6 @@
 const WORKER_URL = "https://royal-butterfly-00d8.seansynge.workers.dev";
 
-window.classifyAnswer = async function(payload) {
+window.classifyAnswer = async function (payload) {
   const res = await fetch(WORKER_URL, {
     method: "POST",
     headers: {
@@ -24,7 +24,7 @@ window.classifyAnswer = async function(payload) {
   }
 };
 
-window.transcribeAudio = async function(blob, language = "es") {
+window.transcribeAudio = async function (blob, language = "es") {
   const fd = new FormData();
   fd.append("audio", blob, "speech.webm");
   fd.append("language", language);
