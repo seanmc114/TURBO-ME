@@ -15,9 +15,8 @@ const THEME_LABEL = {
   futuro: "Planes y futuro"
 };
 
-const TENSE_LABEL = { present: "Present", past: "Past", future: "Future" };
-
 let state = {
+  language: localStorage.getItem("oral_language") || "es",
   theme: localStorage.getItem("oral_theme") || "yo",
   tense: localStorage.getItem("oral_tense") || "present",
   turn: 0,
@@ -72,7 +71,7 @@ function wireButtonsSafely() {
 
   if (readQBtn) {
     readQBtn.addEventListener("click", () => {
-      speakES(qEl.textContent);
+      speakQuestion(qEl.textContent);
     });
   }
 
@@ -85,14 +84,33 @@ function wireButtonsSafely() {
   }
 }
 
+function questionFileForLanguage(lang) {
+  if (lang === "fr") return "questions-fr.json";
+  if (lang === "de") return "questions-de.json";
+  return "questions.json";
+}
+
+function speechLangForLanguage(lang) {
+  if (lang === "fr") return "fr-FR";
+  if (lang === "de") return "de-DE";
+  return "es-ES";
+}
+
 function setQuestion(text) {
-  qEl.textContent = text || "¿Puedes hablar un poco de este tema?";
+  qEl.textContent = text || fallbackQuestion();
+}
+
+function fallbackQuestion() {
+  if (state.language === "fr") return "Peux-tu parler un peu de ce thème ?";
+  if (state.language === "de") return "Kannst du ein bisschen über dieses Thema sprechen?";
+  return "¿Puedes hablar un poco de este tema?";
 }
 
 async function loadBank() {
   if (state.bank) return state.bank;
   try {
-    state.bank = await fetch("questions.json", { cache: "no-store" }).then(r => r.json());
+    const file = questionFileForLanguage(state.language);
+    state.bank = await fetch(file, { cache: "no-store" }).then(r => r.json());
   } catch {
     state.bank = {};
   }
@@ -154,7 +172,7 @@ function getAnyQuestionFromBank() {
       }
     }
   }
-  return "¿Puedes hablar un poco de este tema?";
+  return fallbackQuestion();
 }
 
 function getRandomQuestion(theme, tense) {
@@ -165,15 +183,16 @@ function getRandomQuestion(theme, tense) {
   return getAnyQuestionFromBank();
 }
 
-function speakES(text) {
+function speakQuestion(text) {
   if (!text) return;
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = "es-ES";
+  u.lang = speechLangForLanguage(state.language);
   u.rate = 0.95;
   const voices = speechSynthesis.getVoices ? speechSynthesis.getVoices() : [];
+  const want = u.lang.toLowerCase();
   const v =
-    voices.find(x => (x.lang || "").toLowerCase() === "es-es") ||
-    voices.find(x => (x.lang || "").toLowerCase().startsWith("es"));
+    voices.find(x => (x.lang || "").toLowerCase() === want) ||
+    voices.find(x => (x.lang || "").toLowerCase().startsWith(want.slice(0,2)));
   if (v) u.voice = v;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
@@ -223,7 +242,7 @@ async function onRecord() {
       `;
 
       try {
-        const data = await window.transcribeAudio(blob);
+        const data = await window.transcribeAudio(blob, state.language);
         const text = (data && data.text) ? String(data.text).trim() : "";
         if (!text) {
           out.innerHTML = `
@@ -313,6 +332,7 @@ async function onSubmit(e) {
 
   const payload = {
     mode: "lc_oral",
+    language: state.language,
     theme: state.theme,
     tense: state.tense,
     question: qEl.textContent,
@@ -371,7 +391,7 @@ async function onSubmit(e) {
     <div style="margin-bottom:10px;"><strong>Main mark-losing issue:</strong> ${escapeHtml(focus)}</div>
     <div style="margin-bottom:10px;"><strong>Coach note:</strong> ${escapeHtml(coachLine)}</div>
     <div style="margin-bottom:12px;">${escapeHtml(result.feedback || "—").replace(/\n/g, "<br>")}</div>
-    ${result.model_answer ? `<div style="margin-top:10px;"><strong>Model (Spanish):</strong><br>${escapeHtml(result.model_answer).replace(/\n/g, "<br>")}</div>` : ""}
+    ${result.model_answer ? `<div style="margin-top:10px;"><strong>Model:</strong><br>${escapeHtml(result.model_answer).replace(/\n/g, "<br>")}</div>` : ""}
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
       <button id="nextBtn" type="button">Next</button>
       <button id="readFeedbackBtn" class="smallBtn" type="button">🔊 Read Question</button>
@@ -382,7 +402,7 @@ async function onSubmit(e) {
 
   const readFeedbackBtn = document.getElementById("readFeedbackBtn");
   if (readFeedbackBtn) {
-    readFeedbackBtn.addEventListener("click", () => speakES(qEl.textContent));
+    readFeedbackBtn.addEventListener("click", () => speakQuestion(qEl.textContent));
   }
 
   const nextBtn = document.getElementById("nextBtn");
@@ -446,8 +466,8 @@ function renderSummary(result) {
     <div style="margin-top:10px;"><strong>What to do next:</strong>
       <ul style="margin:8px 0 0 18px;">
         ${(drills.length ? drills : [
-          "Add 1 reason (porque) or 1 small detail to each answer.",
-          "Use one connector: además / también / sin embargo.",
+          "Add 1 reason or 1 small detail to each answer.",
+          "Use one connector.",
           "Repeat the same theme and try to beat your last round."
         ]).map(d => `<li>${escapeHtml(String(d))}</li>`).join("")}
       </ul>
@@ -463,7 +483,9 @@ function renderSummary(result) {
     againBtn.addEventListener("click", () => {
       const keepTheme = state.theme;
       const keepTense = state.tense;
+      const keepLanguage = state.language;
       state = {
+        language: keepLanguage,
         theme: keepTheme,
         tense: keepTense,
         turn: 0,
