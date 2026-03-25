@@ -1,0 +1,124 @@
+{
+  "yo": {
+    "present": [
+      "Erzähl mir etwas über dich.",
+      "Wie bist du als Person ?"
+    ],
+    "past": [
+      "Wie warst du, als du jünger warst ?"
+    ],
+    "future": [
+      "Wie möchtest du in der Zukunft sein ?"
+    ]
+  },
+  "barrio": {
+    "present": [
+      "Erzähl mir von deinem Wohnort und deinem Haus."
+    ],
+    "past": [
+      "Wie war der Ort, wo du früher gewohnt hast ?"
+    ],
+    "future": [
+      "Wo möchtest du später wohnen ?"
+    ]
+  },
+  "instituto": {
+    "present": [
+      "Erzähl mir von deiner Schule."
+    ],
+    "past": [
+      "Wie war dein letzter Schultag ?"
+    ],
+    "future": [
+      "Was wirst du nächstes Jahr in der Schule machen ?"
+    ]
+  },
+  "familia": {
+    "present": [
+      "Erzähl mir von deiner Familie."
+    ],
+    "past": [
+      "Was hast du vor kurzem mit deiner Familie gemacht ?"
+    ],
+    "future": [
+      "Was möchtest du in Zukunft mit deiner Familie machen ?"
+    ]
+  },
+  "amigos": {
+    "present": [
+      "Erzähl mir von deinen Freunden."
+    ],
+    "past": [
+      "Was hast du vor kurzem mit deinen Freunden gemacht ?"
+    ],
+    "future": [
+      "Was möchtest du bald mit deinen Freunden machen ?"
+    ]
+  },
+  "tiempo": {
+    "present": [
+      "Was machst du in deiner Freizeit ?"
+    ],
+    "past": [
+      "Was hast du letztes Wochenende gemacht ?"
+    ],
+    "future": [
+      "Was wirst du nächstes Wochenende machen ?"
+    ]
+  },
+  "vacaciones": {
+    "present": [
+      "Magst du Ferien und Reisen ?"
+    ],
+    "past": [
+      "Wohin bist du in den letzten Ferien gefahren ?"
+    ],
+    "future": [
+      "Wohin möchtest du in Urlaub fahren ?"
+    ]
+  },
+  "salud": {
+    "present": [
+      "Erzähl mir über Sport und Gesundheit."
+    ],
+    "past": [
+      "Hast du schon einmal eine neue Sportart ausprobiert ?"
+    ],
+    "future": [
+      "Wie wirst du in Zukunft gesund bleiben ?"
+    ]
+  },
+  "tecnologia": {
+    "present": [
+      "Erzähl mir über Technologie und soziale Medien."
+    ],
+    "past": [
+      "Hast du schon einmal zu viel Zeit am Handy verbracht ?"
+    ],
+    "future": [
+      "Wie wirst du Technologie in der Zukunft benutzen ?"
+    ]
+  },
+  "comida": {
+    "present": [
+      "Erzähl mir, was du normalerweise isst."
+    ],
+    "past": [
+      "Was hast du gestern gegessen ?"
+    ],
+    "future": [
+      "Was möchtest du dieses Wochenende essen ?"
+    ]
+  },
+  "futuro": {
+    "present": [
+      "Wenn du an die Zukunft denkst, was ist dir wichtig ?"
+    ],
+    "past": [
+      "Was wolltest du früher später machen ?"
+    ],
+    "future": [
+      "Was sind deine Pläne für die Zukunft ?"
+    ]
+  }
+}
