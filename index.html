@@ -10,228 +10,228 @@
 
 <main class="wrap">
   <h1>Turbo Me (up)</h1>
-  <p class="sub" id="subLine">Talk about You. Practice. Enjoy. You have a lot to say.</p>
+
+  <!-- ✅ ALWAYS ENGLISH -->
+  <p class="sub">
+    Talk about You. Practice. Enjoy. You have a lot to say.
+  </p>
 
   <div class="card" style="margin-bottom:16px;">
-    <div style="font-weight:900;margin-bottom:10px;" id="chooseLangTitle">Choose language</div>
+    <div style="font-weight:900;margin-bottom:10px;">
+      Choose language
+    </div>
+
     <div class="controls">
       <button id="langEs" type="button">Spanish</button>
       <button id="langFr" type="button">French</button>
       <button id="langDe" type="button">German</button>
     </div>
-    <div class="tiny"><span id="currentWord">Current</span>: <span id="currentLangLabel">Spanish</span></div>
+
+    <div class="tiny">
+      Current: <span id="currentLangLabel">Spanish</span>
+    </div>
   </div>
 
   <div class="grid" id="grid"></div>
 
   <div class="card dash">
-    <div><strong id="totalStarsLabel">Total Stars:</strong> <span id="totalStars">0</span> ⭐</div>
-    <div class="tiny" id="dictationTip">Tip: Dictation works everywhere because it records audio and transcribes to The Brother. (Br. Turbo)</div>
-    <button id="reset" class="ghost" type="button">Reset Progress</button>
+    <div>
+      <strong>Total Stars:</strong>
+      <span id="totalStars">0</span> ⭐
+    </div>
+
+    <!-- ✅ ENGLISH -->
+    <div class="tiny">
+      Tip: Dictation works everywhere because it records audio and transcribes to The Brother. (Br. Turbo)
+    </div>
+
+    <button id="reset" class="ghost" type="button">
+      Reset Progress
+    </button>
   </div>
 </main>
 
 <footer>© 2026 Synge St Games — imagination and perseverance</footer>
 
 <script>
-  const totalStarsKey = "oral_totalStars";
-  const langKey = "oral_language";
+const totalStarsKey = "oral_totalStars";
+const langKey = "oral_language";
 
-  const UI_TEXT = {
-    es: {
-      sub: "Habla de ti. Practica. Disfruta. Tienes mucho que decir.",
-      choose: "Elige idioma",
-      current: "Actual",
-      total: "Estrellas totales:",
-      reset: "Borrar progreso",
-      tip: "Consejo: El dictado funciona en todas partes porque graba audio y lo transcribe a The Brother. (Br. Turbo)",
-      chooseTense: "Elegir tiempo →",
-      best: "Mejor"
-    },
-    fr: {
-      sub: "Parle de toi. Entraîne-toi. Amuse-toi. Tu as beaucoup à dire.",
-      choose: "Choisis la langue",
-      current: "Actuel",
-      total: "Étoiles totales :",
-      reset: "Réinitialiser",
-      tip: "Astuce : la dictée fonctionne partout parce qu’elle enregistre l’audio et le transcrit à The Brother. (Br. Turbo)",
-      chooseTense: "Choisir le temps →",
-      best: "Meilleur"
-    },
-    de: {
-      sub: "Sprich über dich. Übe. Hab Spaß. Du hast viel zu sagen.",
-      choose: "Sprache wählen",
-      current: "Aktuell",
-      total: "Gesamtsterne:",
-      reset: "Fortschritt löschen",
-      tip: "Tipp: Diktat funktioniert überall, weil Audio aufgenommen und an The Brother. (Br. Turbo) übertragen wird.",
-      chooseTense: "Zeitform wählen →",
-      best: "Beste"
-    }
-  };
+/* -------------------------
+   TILE TEXT ONLY (changes)
+------------------------- */
 
-  const THEME_TITLES = {
-    es: {
-      yo: "Yo y mi personalidad",
-      barrio: "Mi barrio y mi casa",
-      instituto: "Mi instituto",
-      familia: "Mi familia",
-      amigos: "Mis amigos",
-      tiempo: "Tiempo libre",
-      vacaciones: "Vacaciones y viajes",
-      salud: "Deporte y salud",
-      tecnologia: "Tecnología y redes",
-      comida: "Comida y vida diaria",
-      futuro: "Planes y futuro"
-    },
-    fr: {
-      yo: "Moi et ma personnalité",
-      barrio: "Mon quartier et ma maison",
-      instituto: "Mon école",
-      familia: "Ma famille",
-      amigos: "Mes amis",
-      tiempo: "Temps libre",
-      vacaciones: "Vacances et voyages",
-      salud: "Sport et santé",
-      tecnologia: "Technologie et réseaux sociaux",
-      comida: "Nourriture et vie quotidienne",
-      futuro: "Projets et avenir"
-    },
-    de: {
-      yo: "Ich und meine Persönlichkeit",
-      barrio: "Mein Wohnort und mein Zuhause",
-      instituto: "Meine Schule",
-      familia: "Meine Familie",
-      amigos: "Meine Freunde",
-      tiempo: "Freizeit",
-      vacaciones: "Ferien und Reisen",
-      salud: "Sport und Gesundheit",
-      tecnologia: "Technologie und soziale Medien",
-      comida: "Essen und Alltag",
-      futuro: "Pläne und Zukunft"
-    }
-  };
-
-  const THEMES = [
-    { id:"yo", icon:"🙂" },
-    { id:"barrio", icon:"🏠" },
-    { id:"instituto", icon:"🎓" },
-    { id:"familia", icon:"👨‍👩‍👧‍👦" },
-    { id:"amigos", icon:"👫" },
-    { id:"tiempo", icon:"⚽" },
-    { id:"vacaciones", icon:"✈️" },
-    { id:"salud", icon:"💪" },
-    { id:"tecnologia", icon:"📱" },
-    { id:"comida", icon:"🍽️" },
-    { id:"futuro", icon:"🗺️" }
-  ];
-
-  function getLang() {
-    return localStorage.getItem(langKey) || "es";
+const THEME_TITLES = {
+  es: {
+    yo:"Yo y mi personalidad",
+    barrio:"Mi barrio y mi casa",
+    instituto:"Mi instituto",
+    familia:"Mi familia",
+    amigos:"Mis amigos",
+    tiempo:"Tiempo libre",
+    vacaciones:"Vacaciones y viajes",
+    salud:"Deporte y salud",
+    tecnologia:"Tecnología y redes",
+    comida:"Comida y vida diaria",
+    futuro:"Planes y futuro"
+  },
+  fr: {
+    yo:"Moi et ma personnalité",
+    barrio:"Mon quartier et ma maison",
+    instituto:"Mon école",
+    familia:"Ma famille",
+    amigos:"Mes amis",
+    tiempo:"Temps libre",
+    vacaciones:"Vacances et voyages",
+    salud:"Sport et santé",
+    tecnologia:"Technologie et réseaux",
+    comida:"Nourriture et vie quotidienne",
+    futuro:"Projets et avenir"
+  },
+  de: {
+    yo:"Ich und meine Persönlichkeit",
+    barrio:"Mein Wohnort und mein Zuhause",
+    instituto:"Meine Schule",
+    familia:"Meine Familie",
+    amigos:"Meine Freunde",
+    tiempo:"Freizeit",
+    vacaciones:"Ferien und Reisen",
+    salud:"Sport und Gesundheit",
+    tecnologia:"Technologie und soziale Medien",
+    comida:"Essen und Alltag",
+    futuro:"Pläne und Zukunft"
   }
+};
 
-  function langLabel(code) {
-    if (code === "fr") return "French";
-    if (code === "de") return "German";
-    return "Spanish";
-  }
+const THEMES = [
+  { id:"yo", icon:"🙂" },
+  { id:"barrio", icon:"🏠" },
+  { id:"instituto", icon:"🎓" },
+  { id:"familia", icon:"👨‍👩‍👧‍👦" },
+  { id:"amigos", icon:"👫" },
+  { id:"tiempo", icon:"⚽" },
+  { id:"vacaciones", icon:"✈️" },
+  { id:"salud", icon:"💪" },
+  { id:"tecnologia", icon:"📱" },
+  { id:"comida", icon:"🍽️" },
+  { id:"futuro", icon:"🗺️" }
+];
 
-  function getTotalStars() {
-    return Number(localStorage.getItem(totalStarsKey) || 0);
-  }
+/* -------------------------
+   STATE
+------------------------- */
 
-  function getBest(theme, tense) {
-    return Number(localStorage.getItem(`oral_best_${theme}_${tense}`) || 0);
-  }
+function getLang(){
+  return localStorage.getItem(langKey) || "es";
+}
 
-  function t() {
-    return UI_TEXT[getLang()] || UI_TEXT.es;
-  }
+function setLang(l){
+  localStorage.setItem(langKey, l);
+}
 
-  function themeTitle(themeId) {
-    const lang = getLang();
-    return (THEME_TITLES[lang] && THEME_TITLES[lang][themeId]) || themeId;
-  }
+function langLabel(code){
+  if(code==="fr") return "French";
+  if(code==="de") return "German";
+  return "Spanish";
+}
 
-  function renderStaticText() {
-    const text = t();
-    document.getElementById("subLine").textContent = text.sub;
-    document.getElementById("chooseLangTitle").textContent = text.choose;
-    document.getElementById("currentWord").textContent = text.current;
-    document.getElementById("currentLangLabel").textContent = langLabel(getLang());
-    document.getElementById("totalStarsLabel").textContent = text.total;
-    document.getElementById("dictationTip").textContent = text.tip;
-    document.getElementById("reset").textContent = text.reset;
-    document.getElementById("totalStars").textContent = getTotalStars();
-  }
+function getTotalStars(){
+  return Number(localStorage.getItem(totalStarsKey)||0);
+}
 
-  function renderTiles() {
-    const grid = document.getElementById("grid");
-    const text = t();
-    grid.innerHTML = "";
+function getBest(theme,tense){
+  return Number(localStorage.getItem(`oral_best_${theme}_${tense}`)||0);
+}
 
-    THEMES.forEach(theme => {
-      const btn = document.createElement("button");
-      btn.className = "tile";
-      btn.type = "button";
+/* -------------------------
+   RENDER
+------------------------- */
 
-      btn.innerHTML = `
-        <div class="tileTop">
-          <div class="tileIcon">${theme.icon}</div>
-          <div>
-            <div class="tileTitle">${themeTitle(theme.id)}</div>
-            <div class="tileMeta">
-              ${text.best} ⭐: P ${"⭐".repeat(getBest(theme.id, "present")) || "—"} ·
-              Pa ${"⭐".repeat(getBest(theme.id, "past")) || "—"} ·
-              F ${"⭐".repeat(getBest(theme.id, "future")) || "—"}
-            </div>
+function renderHeader(){
+  document.getElementById("currentLangLabel").textContent = langLabel(getLang());
+  document.getElementById("totalStars").textContent = getTotalStars();
+}
+
+function themeTitle(id){
+  const lang = getLang();
+  return THEME_TITLES[lang][id] || id;
+}
+
+function renderTiles(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  THEMES.forEach(t=>{
+    const btn = document.createElement("button");
+    btn.className="tile";
+
+    btn.innerHTML = `
+      <div class="tileTop">
+        <div class="tileIcon">${t.icon}</div>
+        <div>
+          <div class="tileTitle">${themeTitle(t.id)}</div>
+          <div class="tileMeta">
+            Best ⭐:
+            P ${"⭐".repeat(getBest(t.id,"present"))||"—"} ·
+            Pa ${"⭐".repeat(getBest(t.id,"past"))||"—"} ·
+            F ${"⭐".repeat(getBest(t.id,"future"))||"—"}
           </div>
         </div>
-        <div class="tileCTA">${text.chooseTense}</div>
-      `;
+      </div>
+      <div class="tileCTA">Choose tense →</div>
+    `;
 
-      btn.addEventListener("click", function () {
-        localStorage.setItem("oral_theme", theme.id);
-        window.location.href = "tense.html";
-      });
+    btn.onclick=()=>{
+      localStorage.setItem("oral_theme",t.id);
+      window.location.href="tense.html";
+    };
 
-      grid.appendChild(btn);
-    });
-  }
-
-  function renderAll() {
-    renderStaticText();
-    renderTiles();
-  }
-
-  document.getElementById("langEs").addEventListener("click", function () {
-    localStorage.setItem(langKey, "es");
-    renderAll();
+    grid.appendChild(btn);
   });
+}
 
-  document.getElementById("langFr").addEventListener("click", function () {
-    localStorage.setItem(langKey, "fr");
-    renderAll();
-  });
+function renderAll(){
+  renderHeader();
+  renderTiles();
+}
 
-  document.getElementById("langDe").addEventListener("click", function () {
-    localStorage.setItem(langKey, "de");
-    renderAll();
-  });
+/* -------------------------
+   EVENTS
+------------------------- */
 
-  document.getElementById("reset").addEventListener("click", function () {
-    if (!confirm("Reset all stars and best scores on this device?")) return;
+document.getElementById("langEs").onclick=()=>{
+  setLang("es");
+  renderAll();
+};
 
-    localStorage.removeItem(totalStarsKey);
-    Object.keys(localStorage).forEach(function (k) {
-      if (k.startsWith("oral_best_")) localStorage.removeItem(k);
-      if (k.startsWith("oral_last_")) localStorage.removeItem(k);
-    });
+document.getElementById("langFr").onclick=()=>{
+  setLang("fr");
+  renderAll();
+};
 
-    renderAll();
+document.getElementById("langDe").onclick=()=>{
+  setLang("de");
+  renderAll();
+};
+
+document.getElementById("reset").onclick=()=>{
+  if(!confirm("Reset all stars and scores?")) return;
+
+  localStorage.removeItem(totalStarsKey);
+
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith("oral_best_")) localStorage.removeItem(k);
   });
 
   renderAll();
+};
+
+/* -------------------------
+   INIT
+------------------------- */
+
+renderAll();
+
 </script>
 
 </body>
