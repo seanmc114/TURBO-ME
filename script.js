@@ -15,6 +15,20 @@ const THEME_LABEL = {
   futuro: "Planes y futuro"
 };
 
+const THEME_ENGLISH = {
+  yo: { present: "Talk about yourself and what kind of person you are.", past: "Talk about what you were like when you were younger.", future: "Talk about the kind of person you want to be in the future." },
+  barrio: { present: "Talk about your area and your home.", past: "Talk about where you lived before.", future: "Talk about where you would like to live in the future." },
+  instituto: { present: "Talk about your school.", past: "Talk about a recent day at school.", future: "Talk about school plans for the future." },
+  familia: { present: "Talk about your family.", past: "Talk about something you did with your family.", future: "Talk about what you would like to do with your family in the future." },
+  amigos: { present: "Talk about your friends.", past: "Talk about something you did with your friends.", future: "Talk about what you would like to do with your friends soon." },
+  tiempo: { present: "Talk about your free time.", past: "Talk about what you did last weekend.", future: "Talk about what you will do next weekend." },
+  vacaciones: { present: "Talk about holidays and travel.", past: "Talk about your last holiday or trip.", future: "Talk about where you would like to go in the future." },
+  salud: { present: "Talk about sport and health.", past: "Talk about a sport or healthy activity you tried.", future: "Talk about how you will stay healthy in the future." },
+  tecnologia: { present: "Talk about technology and social media.", past: "Talk about your recent use of technology.", future: "Talk about how you will use technology in the future." },
+  comida: { present: "Talk about food and daily life.", past: "Talk about what you ate recently.", future: "Talk about what you would like to eat or do soon." },
+  futuro: { present: "Talk about what matters to you about the future.", past: "Talk about what you wanted to do when you were younger.", future: "Talk about your plans for the future." }
+};
+
 let state = {
   language: localStorage.getItem("oral_language") || "es",
   theme: localStorage.getItem("oral_theme") || "yo",
@@ -24,7 +38,8 @@ let state = {
   scores: [],
   focuses: [],
   lastAudioUrl: null,
-  bank: null
+  bank: null,
+  lastSafeValue: ""
 };
 
 const qEl = document.getElementById("question");
@@ -42,7 +57,7 @@ if (qEl && aEl) initPlay();
 async function initPlay() {
   hidePill();
   wireButtonsSafely();
-  blockCopyPaste(aEl);
+  lockInputDown(aEl);
 
   setTurn(1);
   setQuestion("Loading question…");
@@ -71,7 +86,7 @@ function wireButtonsSafely() {
 
   if (readQBtn) {
     readQBtn.addEventListener("click", () => {
-      speakQuestion(qEl.textContent);
+      speakQuestion(getPlainQuestionText());
     });
   }
 
@@ -96,14 +111,31 @@ function speechLangForLanguage(lang) {
   return "es-ES";
 }
 
-function setQuestion(text) {
-  qEl.textContent = text || fallbackQuestion();
-}
-
 function fallbackQuestion() {
   if (state.language === "fr") return "Peux-tu parler un peu de ce thème ?";
   if (state.language === "de") return "Kannst du ein bisschen über dieses Thema sprechen?";
   return "¿Puedes hablar un poco de este tema?";
+}
+
+function setQuestion(text) {
+  const q = text || fallbackQuestion();
+  const eng = englishHelpForCurrentTheme();
+  qEl.innerHTML = `
+    <div style="font-weight:800; line-height:1.4;">${escapeHtml(q)}</div>
+    <div style="margin-top:6px;font-size:0.92rem;opacity:0.75;line-height:1.35;">
+      ${escapeHtml(eng)}
+    </div>
+  `;
+}
+
+function getPlainQuestionText() {
+  const first = qEl.querySelector("div");
+  return first ? first.textContent : qEl.textContent;
+}
+
+function englishHelpForCurrentTheme() {
+  const block = THEME_ENGLISH[state.theme] || THEME_ENGLISH.yo;
+  return block[state.tense] || block.present || "Say something about this topic.";
 }
 
 async function loadBank() {
@@ -192,7 +224,7 @@ function speakQuestion(text) {
   const want = u.lang.toLowerCase();
   const v =
     voices.find(x => (x.lang || "").toLowerCase() === want) ||
-    voices.find(x => (x.lang || "").toLowerCase().startsWith(want.slice(0,2)));
+    voices.find(x => (x.lang || "").toLowerCase().startsWith(want.slice(0, 2)));
   if (v) u.voice = v;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
@@ -251,7 +283,8 @@ async function onRecord() {
           `;
           return;
         }
-        aEl.value = (aEl.value.trim() ? (aEl.value.trim() + " ") : "") + text;
+        aEl.value = text;
+        state.lastSafeValue = aEl.value;
         out.classList.add("hidden");
       } catch {
         out.innerHTML = `
@@ -277,7 +310,6 @@ function safeStopRecording() {
   try {
     if (recordTimeout) clearTimeout(recordTimeout);
   } catch {}
-
   recordTimeout = null;
 
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -312,7 +344,20 @@ async function onSubmit(e) {
   if (e) e.preventDefault();
 
   const answer = aEl.value.trim();
+
   if (!answer) return;
+
+  const validity = validateTargetLanguageAnswer(answer, state.language);
+
+  if (!validity.ok) {
+    out.classList.remove("hidden");
+    out.innerHTML = `
+      <div style="font-weight:900;font-size:1.1rem;margin-bottom:8px;">Target language only</div>
+      <div style="margin-bottom:8px;">${escapeHtml(validity.message)}</div>
+      <div class="tiny">No English, no keyboard smash, and no pasted text.</div>
+    `;
+    return;
+  }
 
   if (submitBtn) submitBtn.disabled = true;
   if (recordBtn) recordBtn.disabled = true;
@@ -331,11 +376,11 @@ async function onSubmit(e) {
   }
 
   const payload = {
-    mode: "lc_oral",
+    mode: "jc_oral",
     language: state.language,
     theme: state.theme,
     tense: state.tense,
-    question: qEl.textContent,
+    question: getPlainQuestionText(),
     answer,
     history: state.history,
     turn: state.turn + 1,
@@ -362,7 +407,7 @@ async function onSubmit(e) {
   state.turn += 1;
   state.scores.push(score);
   state.focuses.push(focus);
-  state.history.push({ q: qEl.textContent, a: answer, tense: state.tense });
+  state.history.push({ q: getPlainQuestionText(), a: answer, tense: state.tense });
 
   const outOf10 = Math.max(0, Math.min(10, Math.round(score / 10)));
   const starCount = starsFor(score);
@@ -402,7 +447,7 @@ async function onSubmit(e) {
 
   const readFeedbackBtn = document.getElementById("readFeedbackBtn");
   if (readFeedbackBtn) {
-    readFeedbackBtn.addEventListener("click", () => speakQuestion(qEl.textContent));
+    readFeedbackBtn.addEventListener("click", () => speakQuestion(getPlainQuestionText()));
   }
 
   const nextBtn = document.getElementById("nextBtn");
@@ -425,6 +470,7 @@ async function onSubmit(e) {
       }
 
       aEl.value = "";
+      state.lastSafeValue = "";
       out.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
       if (recordBtn) recordBtn.disabled = false;
@@ -493,7 +539,8 @@ function renderSummary(result) {
         scores: [],
         focuses: [],
         lastAudioUrl: null,
-        bank: state.bank
+        bank: state.bank,
+        lastSafeValue: ""
       };
       hidePill();
       setTurn(1);
@@ -516,19 +563,126 @@ function renderSummary(result) {
   if (recordBtn) recordBtn.disabled = false;
 }
 
-function blockCopyPaste(el) {
+function validateTargetLanguageAnswer(answer, lang) {
+  const s = String(answer || "").trim();
+  const lower = s.toLowerCase();
+
+  if (s.length < 3) {
+    return { ok: false, message: "That is too short." };
+  }
+
+  if (!/[a-zA-ZÀ-ÿÄÖÜäöüßñÑçÇ]/.test(s)) {
+    return { ok: false, message: "That does not look like a real answer." };
+  }
+
+  if (looksLikeKeyboardSmash(lower)) {
+    return { ok: false, message: "That looks like keyboard smash, not a real answer." };
+  }
+
+  if (lang === "es" && looksEnglishNotSpanish(lower)) {
+    return { ok: false, message: "Please answer in Spanish only." };
+  }
+
+  if (lang === "fr" && looksEnglishNotFrench(lower)) {
+    return { ok: false, message: "Please answer in French only." };
+  }
+
+  if (lang === "de" && looksEnglishNotGerman(lower)) {
+    return { ok: false, message: "Please answer in German only." };
+  }
+
+  if (lang === "es" && !hasSpanishSignal(lower)) {
+    return { ok: false, message: "That does not look Spanish enough." };
+  }
+
+  if (lang === "fr" && !hasFrenchSignal(lower)) {
+    return { ok: false, message: "That does not look French enough." };
+  }
+
+  if (lang === "de" && !hasGermanSignal(lower)) {
+    return { ok: false, message: "That does not look German enough." };
+  }
+
+  return { ok: true, message: "" };
+}
+
+function looksLikeKeyboardSmash(s) {
+  if (s.length >= 6 && !/[aeiouáéíóúàèìòùâêîôûäëïöüy]/i.test(s)) return true;
+  if (/([a-záéíóúàèìòùâêîôûäëïöüß])\1\1/i.test(s)) return true;
+  if (/^[a-z]{7,}$/i.test(s) && !/\s/.test(s) && !/[aeiouáéíóúàèìòùâêîôûäëïöü]/i.test(s)) return true;
+  return false;
+}
+
+function looksEnglishNotSpanish(s) {
+  const english = /\b(i|my|me|and|the|is|are|live|like|love|have|go|went|with|because|but|in|on|at|family|school|friend|friends)\b/;
+  const spanish = /\b(yo|me|mi|mis|soy|es|son|tengo|vivo|estoy|voy|fui|porque|pero|con|mi familia|mis amigos|instituto|colegio|me gusta|también)\b|[ñáéíóúü]/;
+  return english.test(s) && !spanish.test(s);
+}
+
+function looksEnglishNotFrench(s) {
+  const english = /\b(i|my|me|and|the|is|are|live|like|love|have|go|went|with|because|but|in|on|at|family|school|friend|friends)\b/;
+  const french = /\b(je|j'|moi|mon|ma|mes|suis|ai|habite|vais|parce que|mais|avec|famille|école|amis|j'aime|aussi|dans|c'est)\b|[àâçéèêëîïôùûüÿœ]/;
+  return english.test(s) && !french.test(s);
+}
+
+function looksEnglishNotGerman(s) {
+  const english = /\b(i|my|me|and|the|is|are|live|like|love|have|go|went|with|because|but|in|on|at|family|school|friend|friends)\b/;
+  const german = /\b(ich|mein|meine|bin|habe|wohne|gehe|ging|weil|aber|mit|familie|schule|freunde|mag|auch|und|in der|zu hause)\b|[äöüß]/;
+  return english.test(s) && !german.test(s);
+}
+
+function hasSpanishSignal(s) {
+  return /\b(yo|me|mi|mis|soy|es|son|tengo|vivo|estoy|voy|fui|porque|pero|con|familia|amigos|instituto|colegio|me gusta|también|muy|en|de|un|una)\b|[ñáéíóúü]/.test(s);
+}
+
+function hasFrenchSignal(s) {
+  return /\b(je|j'|moi|mon|ma|mes|suis|ai|habite|vais|parce que|mais|avec|famille|école|amis|j'aime|aussi|très|dans|de|un|une|le|la|les|c'est)\b|[àâçéèêëîïôùûüÿœ]/.test(s);
+}
+
+function hasGermanSignal(s) {
+  return /\b(ich|mein|meine|bin|habe|wohne|gehe|ging|weil|aber|mit|familie|schule|freunde|mag|auch|sehr|und|ein|eine|der|die|das|zu hause)\b|[äöüß]/.test(s);
+}
+
+function lockInputDown(el) {
   if (!el) return;
 
-  ["paste", "copy", "cut", "drop"].forEach(evt => {
+  state.lastSafeValue = el.value || "";
+
+  ["paste", "copy", "cut", "drop", "contextmenu"].forEach(evt => {
     el.addEventListener(evt, e => e.preventDefault());
+  });
+
+  document.addEventListener("copy", e => {
+    if (document.activeElement === el) e.preventDefault();
+  });
+
+  document.addEventListener("cut", e => {
+    if (document.activeElement === el) e.preventDefault();
+  });
+
+  el.addEventListener("beforeinput", e => {
+    const blocked = [
+      "insertFromPaste",
+      "insertFromDrop",
+      "deleteByCut",
+      "historyUndo",
+      "historyRedo"
+    ];
+    if (blocked.includes(e.inputType)) e.preventDefault();
   });
 
   el.addEventListener("keydown", e => {
     const key = (e.key || "").toLowerCase();
-    if ((e.ctrlKey || e.metaKey) && ["v", "c", "x"].includes(key)) {
+    if ((e.ctrlKey || e.metaKey) && ["v", "c", "x", "a"].includes(key)) {
       e.preventDefault();
     }
   });
+
+  el.addEventListener("input", () => {
+    state.lastSafeValue = el.value;
+  });
+
+  el.addEventListener("selectstart", e => e.preventDefault());
 }
 
 function escapeHtml(s) {
