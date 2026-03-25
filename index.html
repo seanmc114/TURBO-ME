@@ -12,11 +12,21 @@
   <h1>Turbo Me (up)</h1>
   <p class="sub">Talk about You. Practice. Enjoy. You have a lot to say.</p>
 
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-weight:900;margin-bottom:10px;">Choose language</div>
+    <div class="controls">
+      <button id="langEs" type="button">Spanish</button>
+      <button id="langFr" type="button">French</button>
+      <button id="langDe" type="button">German</button>
+    </div>
+    <div class="tiny">Current: <span id="currentLangLabel">Spanish</span></div>
+  </div>
+
   <div class="grid" id="grid"></div>
 
   <div class="card dash">
     <div><strong>Total Stars:</strong> <span id="totalStars">0</span> ⭐</div>
-    <div class="tiny">Tip: Dictation works everywhere because it records audio and transcribes it via your Worker.</div>
+    <div class="tiny">Tip: Dictation works everywhere because it records audio and transcribes to The Brother. (Br. Turbo)</div>
     <button id="reset" class="ghost" type="button">Reset Progress</button>
   </div>
 </main>
@@ -39,6 +49,15 @@
   ];
 
   const totalStarsKey = "oral_totalStars";
+  const langKey = "oral_language";
+
+  function getLang(){ return localStorage.getItem(langKey) || "es"; }
+
+  function langLabel(code){
+    if(code === "fr") return "French";
+    if(code === "de") return "German";
+    return "Spanish";
+  }
 
   function getTotalStars(){ return Number(localStorage.getItem(totalStarsKey) || 0); }
   function getBest(theme, tense){ return Number(localStorage.getItem(`oral_best_${theme}_${tense}`) || 0); }
@@ -47,6 +66,7 @@
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
     document.getElementById("totalStars").textContent = getTotalStars();
+    document.getElementById("currentLangLabel").textContent = langLabel(getLang());
 
     THEMES.forEach(t=>{
       const btn = document.createElement("button");
@@ -71,6 +91,19 @@
       grid.appendChild(btn);
     });
   }
+
+  document.getElementById("langEs").addEventListener("click", ()=>{
+    localStorage.setItem(langKey, "es");
+    render();
+  });
+  document.getElementById("langFr").addEventListener("click", ()=>{
+    localStorage.setItem(langKey, "fr");
+    render();
+  });
+  document.getElementById("langDe").addEventListener("click", ()=>{
+    localStorage.setItem(langKey, "de");
+    render();
+  });
 
   document.getElementById("reset").addEventListener("click", ()=>{
     if(!confirm("Reset all stars and best scores on this device?")) return;
