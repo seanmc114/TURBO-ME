@@ -613,18 +613,18 @@ async function onSubmit(e) {
 
   let coachLine = "";
   if (outOf10 >= 8) {
-    coachLine = "Strong answer. Don’t waste too much time chasing one extra mark here. Improve another area too.";
+    coachLine = "Strong answer. This is already working well. Improve another area too.";
   } else if (outOf10 >= 6) {
-    coachLine = "Good base. One clear fix will move this up.";
+    coachLine = "Good base. One clear fix should move this up.";
   } else {
-    coachLine = "This is fixable. Add one clear detail and tighten the language.";
+    coachLine = "This is fixable. Add one clear detail and make the language more accurate.";
   }
 
   out.innerHTML = `
     <div style="font-weight:900;font-size:1.3rem;margin-bottom:6px;">${outOf10}/10 ${stars}</div>
     ${progressLine}
     <div style="margin-bottom:10px;"><strong>Main mark-losing issue:</strong> ${escapeHtml(focus)}</div>
-    <div style="margin-bottom:10px;"><strong>Coach note:</strong> ${escapeHtml(coachLine)}</div>
+    <div style="margin-bottom:10px;"><strong>Coach note (English):</strong> ${escapeHtml(coachLine)}</div>
     <div style="margin-bottom:12px;">${escapeHtml(result.feedback || "—").replace(/\n/g, "<br>")}</div>
     ${result.model_answer ? `<div style="margin-top:10px;"><strong>Model:</strong><br>${escapeHtml(result.model_answer).replace(/\n/g, "<br>")}</div>` : ""}
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">

@@ -225,6 +225,48 @@ button:disabled{
   transform:translateY(-2px);
 }
 
+
+
+.tile:nth-child(4n+1),
+.tileSmall:nth-child(4n+1){
+  background:linear-gradient(135deg,var(--navy),#0f3b7a);
+}
+
+.tile:nth-child(4n+1):hover,
+.tileSmall:nth-child(4n+1):hover{
+  background:linear-gradient(135deg,#0f3b7a,var(--blue));
+}
+
+.tile:nth-child(4n+2),
+.tileSmall:nth-child(4n+2){
+  background:linear-gradient(135deg,#14532d,var(--teal));
+}
+
+.tile:nth-child(4n+2):hover,
+.tileSmall:nth-child(4n+2):hover{
+  background:linear-gradient(135deg,#0f766e,#14b8a6);
+}
+
+.tile:nth-child(4n+3),
+.tileSmall:nth-child(4n+3){
+  background:linear-gradient(135deg,#7c2d12,#f59e0b);
+}
+
+.tile:nth-child(4n+3):hover,
+.tileSmall:nth-child(4n+3):hover{
+  background:linear-gradient(135deg,#9a3412,#fbbf24);
+}
+
+.tile:nth-child(4n),
+.tileSmall:nth-child(4n){
+  background:linear-gradient(135deg,#5b21b6,#7c3aed);
+}
+
+.tile:nth-child(4n):hover,
+.tileSmall:nth-child(4n):hover{
+  background:linear-gradient(135deg,#6d28d9,#8b5cf6);
+}
+
 .tileTop{
   display:flex;
   gap:12px;
@@ -344,7 +386,49 @@ button:disabled{
     display:block;
   }
 
-  .tileTop{
+  
+
+.tile:nth-child(4n+1),
+.tileSmall:nth-child(4n+1){
+  background:linear-gradient(135deg,var(--navy),#0f3b7a);
+}
+
+.tile:nth-child(4n+1):hover,
+.tileSmall:nth-child(4n+1):hover{
+  background:linear-gradient(135deg,#0f3b7a,var(--blue));
+}
+
+.tile:nth-child(4n+2),
+.tileSmall:nth-child(4n+2){
+  background:linear-gradient(135deg,#14532d,var(--teal));
+}
+
+.tile:nth-child(4n+2):hover,
+.tileSmall:nth-child(4n+2):hover{
+  background:linear-gradient(135deg,#0f766e,#14b8a6);
+}
+
+.tile:nth-child(4n+3),
+.tileSmall:nth-child(4n+3){
+  background:linear-gradient(135deg,#7c2d12,#f59e0b);
+}
+
+.tile:nth-child(4n+3):hover,
+.tileSmall:nth-child(4n+3):hover{
+  background:linear-gradient(135deg,#9a3412,#fbbf24);
+}
+
+.tile:nth-child(4n),
+.tileSmall:nth-child(4n){
+  background:linear-gradient(135deg,#5b21b6,#7c3aed);
+}
+
+.tile:nth-child(4n):hover,
+.tileSmall:nth-child(4n):hover{
+  background:linear-gradient(135deg,#6d28d9,#8b5cf6);
+}
+
+.tileTop{
     gap:10px;
   }
 
