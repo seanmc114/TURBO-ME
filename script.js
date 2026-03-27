@@ -119,12 +119,10 @@ function fallbackQuestion() {
 
 function setQuestion(text) {
   const q = text || fallbackQuestion();
-  const eng = englishHelpForCurrentTheme();
+  const eng = englishHelpForQuestion(q);
   qEl.innerHTML = `
     <div style="font-weight:800; line-height:1.4;">${escapeHtml(q)}</div>
-    <div style="margin-top:6px;font-size:0.92rem;opacity:0.75;line-height:1.35;">
-      ${escapeHtml(eng)}
-    </div>
+    ${eng ? `<div style="margin-top:6px;font-size:0.92rem;opacity:0.75;line-height:1.35;">${escapeHtml(eng)}</div>` : ""}
   `;
 }
 
@@ -133,9 +131,13 @@ function getPlainQuestionText() {
   return first ? first.textContent : qEl.textContent;
 }
 
-function englishHelpForCurrentTheme() {
+function englishHelpForQuestion(questionText) {
+  const q = String(questionText || "").trim();
+  if (state.language === "es" && state.englishLookup && state.englishLookup[q]) {
+    return state.englishLookup[q];
+  }
   const block = THEME_ENGLISH[state.theme] || THEME_ENGLISH.yo;
-  return block[state.tense] || block.present || "Say something about this topic.";
+  return block[state.tense] || block.present || "";
 }
 
 async function loadBank() {
@@ -143,8 +145,23 @@ async function loadBank() {
   try {
     const file = questionFileForLanguage(state.language);
     state.bank = await fetch(file, { cache: "no-store" }).then(r => r.json());
+
+    if (state.language === "es") {
+      try {
+        state.bankEn = await fetch("questions-en.json", { cache: "no-store" }).then(r => r.json());
+        state.englishLookup = buildEnglishLookup(state.bank, state.bankEn);
+      } catch {
+        state.bankEn = null;
+        state.englishLookup = {};
+      }
+    } else {
+      state.bankEn = null;
+      state.englishLookup = {};
+    }
   } catch {
     state.bank = {};
+    state.bankEn = null;
+    state.englishLookup = {};
   }
   return state.bank;
 }
@@ -159,6 +176,29 @@ function normaliseTense(tense) {
   const t = String(tense || "present").trim().toLowerCase();
   return ["present", "past", "future"].includes(t) ? t : "present";
 }
+
+function buildEnglishLookup(sourceBank, englishBank) {
+  const lookup = {};
+  if (!sourceBank || !englishBank) return lookup;
+
+  Object.keys(sourceBank).forEach(theme => {
+    const sourceTheme = sourceBank[theme] || {};
+    const englishTheme = englishBank[theme] || {};
+
+    ["present", "past", "future"].forEach(tense => {
+      const sourceList = Array.isArray(sourceTheme[tense]) ? sourceTheme[tense] : [];
+      const englishList = Array.isArray(englishTheme[tense]) ? englishTheme[tense] : [];
+
+      sourceList.forEach((question, index) => {
+        const english = englishList[index];
+        if (question && english) lookup[String(question).trim()] = String(english).trim();
+      });
+    });
+  });
+
+  return lookup;
+}
+
 
 function getQuestionList(theme, tense) {
   const bank = state.bank || {};
@@ -233,6 +273,17 @@ function speakQuestion(text) {
 let mediaRecorder = null;
 let audioChunks = [];
 let recordTimeout = null;
+let silenceInterval = null;
+let audioContext = null;
+let analyser = null;
+let micSource = null;
+let audioStream = null;
+let recordStartedAt = 0;
+
+const MAX_RECORDING_MS = 9000;
+const MIN_RECORDING_MS = 2200;
+const SILENCE_GRACE_MS = 1600;
+const SILENCE_THRESHOLD = 0.018;
 
 async function onRecord() {
   if (!recordBtn || !out) return;
@@ -245,21 +296,23 @@ async function onRecord() {
   out.classList.remove("hidden");
   out.innerHTML = `
     <div><strong>Dictation</strong></div>
-    <div class="tiny">Recording… speak naturally. (Stops automatically.)</div>
+    <div class="tiny">Recording… speak naturally. A short thinking pause is fine.</div>
   `;
 
   audioChunks = [];
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(audioStream);
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size) audioChunks.push(e.data);
     };
 
     mediaRecorder.onstop = async () => {
+      cleanupRecordingWatchers();
+
       try {
-        stream.getTracks().forEach(t => t.stop());
+        audioStream.getTracks().forEach(t => t.stop());
       } catch {}
 
       const blob = new Blob(audioChunks, {
@@ -283,8 +336,7 @@ async function onRecord() {
           `;
           return;
         }
-        aEl.value = text;
-        state.lastSafeValue = aEl.value;
+        setAnswerValue(text);
         out.classList.add("hidden");
       } catch {
         out.innerHTML = `
@@ -295,10 +347,14 @@ async function onRecord() {
     };
 
     mediaRecorder.start();
-    recordTimeout = setTimeout(() => safeStopRecording(), 6000);
+    recordStartedAt = Date.now();
+    startSilenceWatcher(audioStream);
+
+    recordTimeout = setTimeout(() => safeStopRecording(), MAX_RECORDING_MS);
     recordBtn.textContent = "⏹ Stop";
     recordBtn.onclick = () => safeStopRecording();
   } catch {
+    cleanupRecordingWatchers();
     out.innerHTML = `
       <div><strong>Dictation</strong></div>
       <div class="tiny">Microphone permission denied or unavailable.</div>
@@ -306,11 +362,77 @@ async function onRecord() {
   }
 }
 
-function safeStopRecording() {
+function startSilenceWatcher(stream) {
+  cleanupRecordingWatchers(false);
+
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    micSource = audioContext.createMediaStreamSource(stream);
+    micSource.connect(analyser);
+
+    const buffer = new Uint8Array(analyser.fftSize);
+    let silenceSince = null;
+
+    silenceInterval = setInterval(() => {
+      if (!analyser || !mediaRecorder || mediaRecorder.state === "inactive") return;
+
+      analyser.getByteTimeDomainData(buffer);
+
+      let sum = 0;
+      for (let i = 0; i < buffer.length; i += 1) {
+        const centered = (buffer[i] - 128) / 128;
+        sum += centered * centered;
+      }
+
+      const rms = Math.sqrt(sum / buffer.length);
+      const elapsed = Date.now() - recordStartedAt;
+
+      if (rms > SILENCE_THRESHOLD) {
+        silenceSince = null;
+        return;
+      }
+
+      if (elapsed < MIN_RECORDING_MS) return;
+
+      if (silenceSince === null) {
+        silenceSince = Date.now();
+        return;
+      }
+
+      if (Date.now() - silenceSince >= SILENCE_GRACE_MS) {
+        safeStopRecording();
+      }
+    }, 200);
+  } catch {}
+}
+
+function cleanupRecordingWatchers(closeContext = true) {
   try {
     if (recordTimeout) clearTimeout(recordTimeout);
   } catch {}
   recordTimeout = null;
+
+  try {
+    if (silenceInterval) clearInterval(silenceInterval);
+  } catch {}
+  silenceInterval = null;
+
+  try {
+    if (micSource) micSource.disconnect();
+  } catch {}
+  micSource = null;
+  analyser = null;
+
+  if (closeContext && audioContext) {
+    try { audioContext.close(); } catch {}
+  }
+  audioContext = null;
+}
+
+function safeStopRecording() {
+  cleanupRecordingWatchers();
 
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
     try { mediaRecorder.stop(); } catch {}
@@ -320,6 +442,59 @@ function safeStopRecording() {
     recordBtn.textContent = "🎙 Dictate";
     recordBtn.onclick = onRecord;
   }
+}
+
+function setAnswerValue(value) {
+  state.allowProgrammaticInput = true;
+  aEl.value = value;
+  state.lastSafeValue = aEl.value;
+  queueMicrotask(() => {
+    state.allowProgrammaticInput = false;
+    state.keyInputBudget = 0;
+  });
+}
+
+function normaliseSimilarityText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9ñüäößç\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stringSimilarity(a, b) {
+  const aa = normaliseSimilarityText(a);
+  const bb = normaliseSimilarityText(b);
+
+  if (!aa || !bb) return 0;
+  if (aa === bb) return 1;
+
+  const aWords = aa.split(" ");
+  const bWords = bb.split(" ");
+  const aSet = new Set(aWords);
+  const bSet = new Set(bWords);
+
+  let overlap = 0;
+  aSet.forEach(word => {
+    if (bSet.has(word)) overlap += 1;
+  });
+
+  const union = new Set([...aSet, ...bSet]).size || 1;
+  const jaccard = overlap / union;
+  const lengthRatio = Math.min(aa.length, bb.length) / Math.max(aa.length, bb.length);
+
+  return (jaccard * 0.75) + (lengthRatio * 0.25);
+}
+
+function answerUsesCoachModel(answer, question) {
+  if (!state.lastResult || !state.lastResult.model_answer) return false;
+
+  const sameQuestion = normaliseSimilarityText(question) === normaliseSimilarityText(state.lastResult.question);
+  if (!sameQuestion) return false;
+
+  return stringSimilarity(answer, state.lastResult.model_answer) >= 0.72;
 }
 
 function starsFor(score100) {
@@ -375,16 +550,21 @@ async function onSubmit(e) {
     return;
   }
 
+  const currentQuestion = getPlainQuestionText();
+
   const payload = {
     mode: "jc_oral",
     language: state.language,
     theme: state.theme,
     tense: state.tense,
-    question: getPlainQuestionText(),
+    question: currentQuestion,
     answer,
     history: state.history,
     turn: state.turn + 1,
-    max_turns: MAX_TURNS
+    max_turns: MAX_TURNS,
+    previous_model_answer: state.lastResult && state.lastResult.model_answer ? state.lastResult.model_answer : "",
+    previous_question: state.lastResult && state.lastResult.question ? state.lastResult.question : "",
+    previous_score: state.lastResult && Number.isFinite(state.lastResult.score) ? state.lastResult.score : null
   };
 
   let result;
@@ -401,13 +581,19 @@ async function onSubmit(e) {
     };
   }
 
-  const score = Number(result.score) || 0;
+  let score = Number(result.score) || 0;
   const focus = (result.focus || "communication").toString();
+  const reusedCoachModel = answerUsesCoachModel(answer, currentQuestion);
+
+  if (reusedCoachModel) {
+    const previousScore = state.lastResult && Number.isFinite(state.lastResult.score) ? state.lastResult.score : 0;
+    score = Math.max(score, Math.min(100, Math.max(70, previousScore + 10)));
+  }
 
   state.turn += 1;
   state.scores.push(score);
   state.focuses.push(focus);
-  state.history.push({ q: getPlainQuestionText(), a: answer, tense: state.tense });
+  state.history.push({ q: currentQuestion, a: answer, tense: state.tense });
 
   const outOf10 = Math.max(0, Math.min(10, Math.round(score / 10)));
   const starCount = starsFor(score);
@@ -417,8 +603,12 @@ async function onSubmit(e) {
   let progressLine = "";
   if (prevScore !== null) {
     if (score > prevScore) progressLine = `<div style="margin-bottom:10px;font-weight:800;">⬆️ Nice improvement.</div>`;
-    else if (score < prevScore) progressLine = `<div style="margin-bottom:10px;font-weight:800;">⚠️ A bit weaker this time — something is lacking.</div>`;
+    else if (score < prevScore) progressLine = `<div style="margin-bottom:10px;font-weight:800;">↘️ A bit weaker this time.</div>`;
     else progressLine = `<div style="margin-bottom:10px;font-weight:800;">➡️ Steady. One small upgrade now.</div>`;
+  }
+
+  if (reusedCoachModel) {
+    progressLine = `<div style="margin-bottom:10px;font-weight:800;">⬆️ Coach model used well.</div>` + progressLine;
   }
 
   let coachLine = "";
@@ -427,7 +617,7 @@ async function onSubmit(e) {
   } else if (outOf10 >= 6) {
     coachLine = "Good base. One clear fix will move this up.";
   } else {
-    coachLine = "Something important is lacking, but it is very fixable.";
+    coachLine = "This is fixable. Add one clear detail and tighten the language.";
   }
 
   out.innerHTML = `
@@ -450,6 +640,12 @@ async function onSubmit(e) {
     readFeedbackBtn.addEventListener("click", () => speakQuestion(getPlainQuestionText()));
   }
 
+  state.lastResult = {
+    question: currentQuestion,
+    score,
+    model_answer: result.model_answer || ""
+  };
+
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) {
     nextBtn.addEventListener("click", () => {
@@ -469,8 +665,7 @@ async function onSubmit(e) {
         setQuestion(getRandomQuestion(state.theme, state.tense));
       }
 
-      aEl.value = "";
-      state.lastSafeValue = "";
+      setAnswerValue("");
       out.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
       if (recordBtn) recordBtn.disabled = false;
@@ -666,19 +861,44 @@ function lockInputDown(el) {
       "insertFromDrop",
       "deleteByCut",
       "historyUndo",
-      "historyRedo"
+      "historyRedo",
+      "insertReplacementText"
     ];
     if (blocked.includes(e.inputType)) e.preventDefault();
   });
 
   el.addEventListener("keydown", e => {
     const key = (e.key || "").toLowerCase();
-    if ((e.ctrlKey || e.metaKey) && ["v", "c", "x", "a"].includes(key)) {
+
+    if ((e.ctrlKey || e.metaKey) && ["v", "c", "x", "a", "z", "y"].includes(key)) {
       e.preventDefault();
+      return;
+    }
+
+    const countsAsDirectInput =
+      key.length === 1 ||
+      key === "backspace" ||
+      key === "delete" ||
+      key === "enter" ||
+      key === " ";
+
+    if (countsAsDirectInput) {
+      state.keyInputBudget += 1;
     }
   });
 
   el.addEventListener("input", () => {
+    if (state.allowProgrammaticInput) {
+      state.lastSafeValue = el.value;
+      return;
+    }
+
+    if (state.keyInputBudget <= 0) {
+      el.value = state.lastSafeValue;
+      return;
+    }
+
+    state.keyInputBudget = Math.max(0, state.keyInputBudget - 1);
     state.lastSafeValue = el.value;
   });
 

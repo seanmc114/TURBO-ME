@@ -1,0 +1,255 @@
+{
+  "yo": {
+    "present": [
+      "Introduce yourself.",
+      "What are you like as a person?",
+      "What are your best qualities?",
+      "What do you like to do and why?",
+      "What makes you different?"
+    ],
+    "past": [
+      "What were you like when you were younger?",
+      "What did you like to do when you were a child?",
+      "Have you changed a lot in recent years?",
+      "What did you learn about yourself last year?",
+      "What did you do recently that made you feel proud?"
+    ],
+    "future": [
+      "What would you like to be like in the future?",
+      "What do you want to improve about yourself?",
+      "What are you going to do this year to improve?",
+      "What would you like your life to be like in the future?",
+      "What would you like to achieve soon?"
+    ]
+  },
+  "barrio": {
+    "present": [
+      "What is your area like?",
+      "What is there in your area?",
+      "Do you like living in your area? Why?",
+      "Describe your house or apartment.",
+      "What is your room like?"
+    ],
+    "past": [
+      "What was your area like when you were younger?",
+      "Where did you live before?",
+      "What did you do in your area when you were a child?",
+      "What was your house like when you were younger?",
+      "What did you like to do on your street when you were younger?"
+    ],
+    "future": [
+      "Would you like to live somewhere else in the future? Why?",
+      "What would you like your house to be like in the future?",
+      "Where would you like to live in ten years' time?",
+      "Would you like to live in the city centre or on the outskirts? Why?",
+      "What would you change in your area in the future?"
+    ]
+  },
+  "instituto": {
+    "present": [
+      "What is your school like?",
+      "Do you like your school? Why?",
+      "What is your favourite subject? Why?",
+      "What do you normally do at break time?",
+      "What do you think of homework?"
+    ],
+    "past": [
+      "What was your first year in secondary school like?",
+      "What subjects did you like last year?",
+      "What did you do on your last school trip?",
+      "What was your favourite teacher like last year?",
+      "What did you find most difficult at school last year?"
+    ],
+    "future": [
+      "What would you change in your school?",
+      "What are you going to do after the exams?",
+      "Would you like to study at university? Why?",
+      "What subjects would you like to study next year?",
+      "What would you like to achieve this year at school?"
+    ]
+  },
+  "familia": {
+    "present": [
+      "Describe your family.",
+      "Who do you live with?",
+      "How do you get on with your family?",
+      "Do you like spending time with your family? Why?",
+      "What do you do with your family at weekends?"
+    ],
+    "past": [
+      "What did you do with your family last weekend?",
+      "What did you celebrate with your family last year?",
+      "What was your relationship with your family like when you were younger?",
+      "What did you like to do with your family when you were a child?",
+      "Where did you go with your family last summer?"
+    ],
+    "future": [
+      "What are you going to do with your family next weekend?",
+      "Would you like to have a big family in the future? Why?",
+      "Where would you like to go on holiday with your family next summer?",
+      "How would you like to celebrate your birthday next year?",
+      "What would you like to do with your family in the future?"
+    ]
+  },
+  "amigos": {
+    "present": [
+      "Describe your best friend.",
+      "What do you normally do with your friends?",
+      "Where do you meet your friends?",
+      "Do you like going out with your friends? Why?",
+      "What qualities do you value in a friend?"
+    ],
+    "past": [
+      "What did you do with your friends last weekend?",
+      "Where did you go with your friends last Saturday?",
+      "How did you meet your best friend?",
+      "What did you do at your last party or outing with friends?",
+      "What did you like to do with your friends when you were younger?"
+    ],
+    "future": [
+      "What are you going to do with your friends next weekend?",
+      "Would you like to travel with your friends in the future? Why?",
+      "Where would you like to go with your friends next summer?",
+      "Would you like to live with friends in the future? Why?",
+      "What plans do you have with your friends for the future?"
+    ]
+  },
+  "tiempo": {
+    "present": [
+      "What do you do in your free time?",
+      "What hobbies do you have?",
+      "Do you like sport? Why?",
+      "What do you do on a normal Saturday?",
+      "Do you prefer staying at home or going out? Why?"
+    ],
+    "past": [
+      "What did you do last weekend?",
+      "What did you do yesterday afternoon?",
+      "What did you do in your free time when you were younger?",
+      "What sport did you play before?",
+      "What did you do during your last Easter holidays?"
+    ],
+    "future": [
+      "What are you going to do next weekend?",
+      "What would you like to learn to do in the future?",
+      "Would you like to do a new sport? Why?",
+      "What are you going to do this afternoon?",
+      "What plans do you have for the next long weekend?"
+    ]
+  },
+  "vacaciones": {
+    "present": [
+      "Do you like holidays? Why?",
+      "What are your ideal holidays like?",
+      "Do you prefer the beach or the mountains? Why?",
+      "What do you normally do in summer?",
+      "Do you like travelling? Why?"
+    ],
+    "past": [
+      "Where did you go last summer?",
+      "What did you do last summer?",
+      "Who did you go on holiday with last year?",
+      "What did you like most about your last holidays?",
+      "What was your last trip like?"
+    ],
+    "future": [
+      "Where would you like to go next summer?",
+      "What are you going to do in the next holidays?",
+      "Would you like to visit Spain? Why?",
+      "What would you do if you had a lot of money to travel?",
+      "What country would you like to travel to in the future? Why?"
+    ]
+  },
+  "salud": {
+    "present": [
+      "Do you do sport? How often?",
+      "What do you do to keep fit?",
+      "Do you like eating healthily? Why?",
+      "What do you think of fast food?",
+      "How many hours do you normally sleep?"
+    ],
+    "past": [
+      "What sport did you do when you were younger?",
+      "What did you eat yesterday?",
+      "Have you ever had an injury? What happened?",
+      "What was your routine like before?",
+      "What did you do the last time you were ill?"
+    ],
+    "future": [
+      "What are you going to do to look after your health this year?",
+      "Would you like to go to the gym more in the future? Why?",
+      "What healthy habits would you like to have?",
+      "What are you going to change in your diet?",
+      "How would you like to be in five years' time?"
+    ]
+  },
+  "tecnologia": {
+    "present": [
+      "Do you use your phone a lot? Why?",
+      "What social networks do you use?",
+      "Do you like technology? Why?",
+      "How much time do you spend on the Internet each day?",
+      "What advantages does the Internet have?"
+    ],
+    "past": [
+      "When did you get your first phone?",
+      "What did you do before social media?",
+      "What video game did you like when you were younger?",
+      "Have you ever lost your phone? What happened?",
+      "What was technology like in your childhood?"
+    ],
+    "future": [
+      "Do you think technology will be better in the future? Why?",
+      "Would you like to have less screen time in the future? Why?",
+      "What technological invention would you like to see in the future?",
+      "How do you think social media will change?",
+      "What are you going to do to use your phone less?"
+    ]
+  },
+  "comida": {
+    "present": [
+      "What is your favourite food? Why?",
+      "What do you usually have for breakfast?",
+      "Do you like cooking? Why?",
+      "Do you prefer eating at home or out? Why?",
+      "What do you normally eat at school?"
+    ],
+    "past": [
+      "What did you eat yesterday?",
+      "What did you have for dinner last night?",
+      "What was the best meal you tried last year?",
+      "Who cooked at home when you were younger?",
+      "What did you like to eat when you were a child?"
+    ],
+    "future": [
+      "What are you going to eat today?",
+      "Would you like to learn to cook better? Why?",
+      "What dish would you like to try in the future?",
+      "Are you going to change your diet this year?",
+      "What would you like to eat on a special occasion?"
+    ]
+  },
+  "futuro": {
+    "present": [
+      "What is important to you in life?",
+      "What do you like about your life now?",
+      "Which subjects are you best at?",
+      "What do you like to do to relax?",
+      "Do you like learning languages? Why?"
+    ],
+    "past": [
+      "What did you want to be when you were younger?",
+      "What important decision did you make last year?",
+      "What was the best thing about last year for you?",
+      "What did you learn last year?",
+      "What did you like to do when you were a child?"
+    ],
+    "future": [
+      "What are you going to do after secondary school?",
+      "What do you want to study or what job do you want to do?",
+      "Where would you like to live in the future? Why?",
+      "How do you imagine your life in ten years' time?",
+      "What goals do you have for next year?"
+    ]
+  }
+}
