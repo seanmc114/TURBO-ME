@@ -678,6 +678,15 @@ function renderSummary(result) {
   const sessionStars = starsFor(avg);
   addTotalStars(sessionStars);
   updateBest(state.theme, state.tense, sessionStars);
+  {
+    // Arcade code — only if total stars improved
+    const _newTotal = Number(localStorage.getItem('oral_totalStars')||0);
+    const _prevTotal = Number(localStorage.getItem('oral_prev_code_stars')||0);
+    if(_newTotal > _prevTotal) {
+      localStorage.setItem('oral_prev_code_stars', _newTotal);
+      if(typeof showArcadeCode==='function') showArcadeCode('turbome', _newTotal);
+    }
+  }
 
   const counts = {};
   state.focuses.forEach(f => {
